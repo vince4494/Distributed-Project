@@ -1,0 +1,24 @@
+**Simacogo**
+Names: Erik Barns, Vincent Zipparro 
+Summary: Simacogo is a mash between GO and connect-4. A server hosts an AI opponent which can play the client.
+There server also hosts game history, high scores, as well as saved games. A client and play the AI, a human opponent and request files.
+
+**Summary of Significant Functions**
+
+Function 1. Transferring files. The server will be used to transfer multiple binary files to the client such as highscores and saved games.
+
+Function 2. Search, the client and search the files that the server can send. 
+
+Function 3. Transferring updated board. As the game progresses the server will have to update the client on the state of the board. 
+The client will also have to notify the Server when it has made a move on the board.
+
+Function 4. Simacogo -- The game itself will be run client side.
+			Simacogo Game:
+			1. 9 x 9 grid
+			2. Click a column to place a tile in the first available spot starting from the bottom
+			3. The opponent will then choose a spot or the AI powered by a MinMax algorithm will choose their move.
+			3. Scoring
+				a. blocks adjacent to each other score 2 points 
+				b. blocks diagnol to each other score 1 point.
+			4. After all spaces have been filled the game is over (81 moves)
+			
