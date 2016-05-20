@@ -11,6 +11,7 @@ Simacogo Game:
 				a. blocks adjacent to each other score 2 points 
 				b. blocks diagnol to each other score 1 point.
 			4. After all spaces have been filled the game is over and a winner is delcared(81 moves)
+
 **Summary of Significant Functions**
 
 Function 1. Transferring files. The server will be used to transfer multiple binary files to the client such as highscores and saved games.
@@ -29,3 +30,55 @@ Function 6. Saving a game. Client writes the current game board to the server an
 
 
 **Functionality Milestones**:
+
+Function 1. 
+	Server:
+		- parses file names from thread request
+		- check whether file exists and can be sent
+		- responds with file size, and if > 0 transmits file to thread. 
+	Client:
+		- parses files 
+		- creates new thread for each file requesting
+
+Function 2. 
+	Server:
+		- sends list of saved game file names to client
+	Client:
+		- requests files that are available to load.
+
+Function 3.
+	Client
+		- client loads gui of current game board
+		- onclick listener lets client choose which column to make their move.
+		- lists winner of the game
+		- presents high scores 
+		- has options to connect to player, AI
+
+	Server:
+		- sends current game board between to clients.
+		- AI runs on server, can use current game board to make decision on next move.
+
+Function 4.
+	Client:
+		- each time client makes a move, uses socket to send updated game board to the server
+	Server:
+		- listens for client to make move
+		- handles move: passes to other player, sends to AI player. 
+
+Function 5.
+	Client:
+		- request list of games to load
+		- request game file
+		- draw board loaded from file.
+	Server:
+		- send list of saved games
+		- send chosen game board
+Function 6.
+	Client:
+		- store current board in binary file
+		- send file to server to store
+		- title game or unique timestamp. 
+	Server:
+		- accepts binary file of current game board.
+		- saves file of game board on host. 
+
