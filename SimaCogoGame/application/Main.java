@@ -4,6 +4,8 @@ import java.awt.Point;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
@@ -33,17 +35,17 @@ public class Main extends Application {
 	Board board = new Board();
 	minMax cpu = new minMax(5);
 	boolean user_turn = true;
-	DataInputStream input;
-	DataOutputStream output;
+	ObjectInputStream input;
+	ObjectOutputStream output;
 	
-	public Main(){
+	public Main() throws IOException{
 		selection = -1;
 		grid = new int[9][9];
+		Connect();
 	}
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			Connect();
 			root = new AnchorPane();
 			scene = new Scene(root,450,450);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -58,8 +60,9 @@ public class Main extends Application {
 	public void Connect() throws IOException{
 		int port = 8080;
 		client_socket = new Socket(InetAddress.getLoopbackAddress(),port);
-		input = new DataInputStream(client_socket.getInputStream());
-		output = new DataOutputStream(client_socket.getOutputStream());
+		output = new ObjectOutputStream(client_socket.getOutputStream());
+		output.flush();
+		input = new ObjectInputStream(client_socket.getInputStream());
 	}
 	public void playGame(){
 		EventHandler<MouseEvent> mouseHandler = new EventHandler<MouseEvent>(){
@@ -78,7 +81,18 @@ public class Main extends Application {
 						if(board.makeMove(board.getBoard(),selection,'O')){
 							user_turn = false;
 							drawMove(selection,true);
-							cpuMove();
+							try {
+								
+								output.writeObject(board);
+								cpuMove();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (ClassNotFoundException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							
 							printBoard();
 						}
 						if(board.gameOver()){
@@ -98,11 +112,13 @@ public class Main extends Application {
 		//printBoard();//print board
 	}
 
-	public void cpuMove(){
-		cpu.min_Max(board,0,false);//calculate cpu move
-		board.setBoard(cpu.getResponse());//set cpu move
-		board.setScore(cpu.getnewScore());
-		System.out.println("end of turn score: "+cpu.getnewScore());
+	public void cpuMove() throws ClassNotFoundException, IOException{
+		//input = new ObjectInputStream(client_socket.getInputStream());
+		board = (Board)input.readObject();
+		//cpu.min_Max(board,0,false);//calculate cpu move
+		//board.setBoard(cpu.getResponse());//set cpu move
+		//board.setScore(cpu.getnewScore());
+		System.out.println("end of turn score: "+board.getScore());
 		drawNewBoard(board.getBoard());
 		user_turn = true;
 	}

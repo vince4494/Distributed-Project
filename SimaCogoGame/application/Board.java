@@ -1,7 +1,8 @@
 package application;
 import java.awt.Point;
+import java.io.Serializable;
 
-public class Board {
+public class Board implements Serializable {
 	private char[][] board;
 	private int score;
 	private int val;
