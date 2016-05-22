@@ -8,6 +8,7 @@ public class Board implements Serializable {
 	private int val;
 	private Board choice;
 	private int depth;
+	
 	public Board(){
 		board = createBoard();
 		score = 0;//game score

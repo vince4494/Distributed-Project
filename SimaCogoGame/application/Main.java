@@ -10,10 +10,12 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -34,37 +36,96 @@ public class Main extends Application {
 	int port;
 	Board board = new Board();
 	minMax cpu = new minMax(5);
-	boolean user_turn = true;
+	char marker;
+	boolean user_turn = false;
 	ObjectInputStream input;
 	ObjectOutputStream output;
-	
+	char piece;
+	boolean player;
 	public Main() throws IOException{
 		selection = -1;
 		grid = new int[9][9];
-		Connect();
+		//Connect();
 	}
 	@Override
 	public void start(Stage primaryStage) {
 		try {
 			root = new AnchorPane();
-			scene = new Scene(root,450,450);
+			scene = new Scene(root,600,600);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			DrawMap();
 			primaryStage.setScene(scene);
 			primaryStage.show();
+			resetButton(primaryStage);
 			playGame();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
-	public void Connect() throws IOException{
+	private void resetButton(Stage oceanStage){
+		//reset button handler
+		Button res = new Button("Play AI");//offer button to reset
+        res.setLayoutY(500);
+        res.setLayoutX(10);
+        EventHandler<ActionEvent> buttonHandler = new EventHandler<ActionEvent>() {
+			@Override
+            public void handle(ActionEvent event) {//closes window and creates a new one
+            		try {
+						Connect(true);
+					} catch (ClassNotFoundException | IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+            	}
+            
+        };
+        res.setOnAction(buttonHandler);
+       root.getChildren().addAll(res);//add button to scene
+       
+		Button play = new Button("Connect to Player");//offer button to reset
+        play.setLayoutY(530);
+        play.setLayoutX(10);
+        EventHandler<ActionEvent> connectHandler = new EventHandler<ActionEvent>() {
+			@Override
+            public void handle(ActionEvent event) {//closes window and creates a new one
+            		
+            			try {
+							Connect(false);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (ClassNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+            		}
+            	
+            
+        };
+        play.setOnAction(connectHandler);
+       root.getChildren().addAll(play);//add button to scene
+	}
+	public void Connect(boolean play_ai) throws IOException, ClassNotFoundException{
 		int port = 8080;
 		client_socket = new Socket(InetAddress.getLoopbackAddress(),port);
 		output = new ObjectOutputStream(client_socket.getOutputStream());
+		output.writeBoolean(play_ai);
 		output.flush();
 		input = new ObjectInputStream(client_socket.getInputStream());
+		int turn = (int)input.readObject();
+		if(turn == 0){
+			piece = 'O';
+			user_turn = true;
+			player = true;
+		}
+		else{
+			piece = 'X';
+			user_turn = false;
+			player = false;
+			cpuMove();
+		}
 	}
-	public void playGame(){
+	public void playGame() throws ClassNotFoundException, IOException{
 		EventHandler<MouseEvent> mouseHandler = new EventHandler<MouseEvent>(){
 
 			@Override
@@ -78,12 +139,13 @@ public class Main extends Application {
 				case "MOUSE_RELEASED":
 						selection = (int)(click.getX()/50);
 						System.out.println(selection);
-						if(board.makeMove(board.getBoard(),selection,'O')){
+						if(board.makeMove(board.getBoard(),selection,piece)){
 							user_turn = false;
-							drawMove(selection,true);
+							printBoard();
 							try {
 								
 								output.writeObject(board);
+								output.flush();
 								cpuMove();
 							} catch (IOException e) {
 								// TODO Auto-generated catch block
@@ -91,7 +153,7 @@ public class Main extends Application {
 							} catch (ClassNotFoundException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
-							}
+							} 
 							
 							printBoard();
 						}
@@ -114,7 +176,9 @@ public class Main extends Application {
 
 	public void cpuMove() throws ClassNotFoundException, IOException{
 		//input = new ObjectInputStream(client_socket.getInputStream());
+		drawNewBoard(board.getBoard());
 		board = (Board)input.readObject();
+		printBoard();
 		//cpu.min_Max(board,0,false);//calculate cpu move
 		//board.setBoard(cpu.getResponse());//set cpu move
 		//board.setScore(cpu.getnewScore());
@@ -134,21 +198,24 @@ public class Main extends Application {
 		for(int i=8;i>=0;i--){
 			for(int j=8;j>=0;j--){
 				if(b[i][j] == 'O')
-					drawMove(j,true);
+					drawMove(i,j,true);
 				else if(b[i][j] == 'X')
-					drawMove(j,false);
+					drawMove(i,j,false);
 
 			}
 		}
 	}
-	public void drawMove(int selection,boolean player){
+	public void drawMove(int i,int j,boolean player){
 		int col = selection;
 		int row = 8;
-		while(row >= 0 && board.getBoard()[row][col] != '-'){
-			row--;
+//		while(row >= 0 && board.getBoard()[row][col] != '-'){
+//			row--;
+//		}
+		Rectangle move = new Rectangle((j)*scale,(i)*scale,scale,scale);
+		if(player){
+			move.setFill(Color.GREEN);
+			System.out.println("green block ");
 		}
-		Rectangle move = new Rectangle((col)*scale,(row+1)*scale,scale,scale);
-		if(player)move.setFill(Color.GREEN);
 		else {
 			move.setFill(Color.BLUE);
 		}
