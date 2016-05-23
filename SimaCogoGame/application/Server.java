@@ -25,48 +25,60 @@ public class Server {
 	}
 	public void listen() throws IOException, ClassNotFoundException{
 		int i=0;
-		while (i < 2){
+		while (true){
 			client_socket = server_socket.accept();
 			Player p = new Player(i,client_socket);
-			p.sendTurn(i);
 			Players.add(p);
 			System.out.println("client connected");
-			client_socket = null;
-			i++;
 			if(p.playingAI()){
-				break;
+				Game g = new Game(p,new Board(),true);
+				Thread thread = new Thread(g);
+				thread.start();
+			}
+			else{
+				i++;
+				client_socket = server_socket.accept();
+				Player p2 = new Player(i,client_socket);
+				//p.sendTurn(i);
+				Players.add(p2);
+				System.out.println("client connected");
+				Game g = new Game(p,p2,new Board(),false);
+				Thread thread = new Thread(g);
+				thread.start();
+				i++;
+				//g.playPlayer();
 			}
 		}
 
 //		output = new ObjectOutputStream(client_socket.getOutputStream());
 //		output.flush();
 		//reader = new ObjectInputStream(client_socket.getInputStream());
-		if(Players.get(0).playingAI()){
-			while(!board.gameOver()){
-				board = Players.get(0).waitBoard();
-				printBoard();
-				cpu.min_Max(board,0,false);//calculate cpu move
-				board.setBoard(cpu.getResponse());//set cpu move
-				board.setScore(cpu.getnewScore());
-				printBoard();
-				Players.get(0).sendBoard(board);
-			}
-		}
-		else{
-			while(!board.gameOver()){
-				board = Players.get(0).waitBoard();
-				printBoard();
-				Players.get(1).sendBoard(board);
-				board = Players.get(1).waitBoard();
-				printBoard();
-				Players.get(0).sendBoard(board);
-				//cpu.min_Max(board,0,false);//calculate cpu move
-				//board.setBoard(cpu.getResponse());//set cpu move
-				//board.setScore(cpu.getnewScore());
-				System.out.println("end of turn score: "+board.getScore());
-				printBoard();
-			}			
-		}
+//		if(Players.get(0).playingAI()){
+//			while(!board.gameOver()){
+//				board = Players.get(0).waitBoard();
+//				printBoard();
+//				cpu.min_Max(board,0,false);//calculate cpu move
+//				board.setBoard(cpu.getResponse());//set cpu move
+//				board.setScore(cpu.getnewScore());
+//				printBoard();
+//				Players.get(0).sendBoard(board);
+//			}
+//		}
+//		else{
+//			while(!board.gameOver()){
+//				board = Players.get(0).waitBoard();
+//				printBoard();
+//				Players.get(1).sendBoard(board);
+//				board = Players.get(1).waitBoard();
+//				printBoard();
+//				Players.get(0).sendBoard(board);
+//				//cpu.min_Max(board,0,false);//calculate cpu move
+//				//board.setBoard(cpu.getResponse());//set cpu move
+//				//board.setScore(cpu.getnewScore());
+//				System.out.println("end of turn score: "+board.getScore());
+//				printBoard();
+//			}			
+//		}
 
 	}
 	public void printBoard(){

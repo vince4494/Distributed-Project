@@ -16,6 +16,7 @@ import javafx.geometry.Point2D;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -38,6 +39,7 @@ public class Main extends Application {
 	minMax cpu = new minMax(5);
 	char marker;
 	boolean user_turn = false;
+	Label label_turn;
 	ObjectInputStream input;
 	ObjectOutputStream output;
 	char piece;
@@ -54,6 +56,7 @@ public class Main extends Application {
 			scene = new Scene(root,600,600);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			DrawMap();
+			drawTurnLabel();
 			primaryStage.setScene(scene);
 			primaryStage.show();
 			resetButton(primaryStage);
@@ -108,12 +111,13 @@ public class Main extends Application {
 	public void Connect(boolean play_ai) throws IOException, ClassNotFoundException{
 		int port = 8080;
 		client_socket = new Socket(InetAddress.getLoopbackAddress(),port);
+		input = new ObjectInputStream(client_socket.getInputStream());
+		int turn = (int)input.readObject();
+		System.out.println(turn);
 		output = new ObjectOutputStream(client_socket.getOutputStream());
 		output.writeBoolean(play_ai);
 		output.flush();
-		input = new ObjectInputStream(client_socket.getInputStream());
-		int turn = (int)input.readObject();
-		if(turn == 0){
+		if(turn % 2 == 0){
 			piece = 'O';
 			user_turn = true;
 			player = true;
@@ -124,6 +128,7 @@ public class Main extends Application {
 			player = false;
 			cpuMove();
 		}
+		updateTurnLabel(user_turn);
 	}
 	public void playGame() throws ClassNotFoundException, IOException{
 		EventHandler<MouseEvent> mouseHandler = new EventHandler<MouseEvent>(){
@@ -141,16 +146,18 @@ public class Main extends Application {
 						System.out.println(selection);
 						if(board.makeMove(board.getBoard(),selection,piece)){
 							user_turn = false;
+							updateTurnLabel(false);
 							printBoard();
 							try {
-								
+								drawNewBoard(board.getBoard());
 								output.writeObject(board);
 								output.flush();
 								cpuMove();
 							} catch (IOException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
-							} catch (ClassNotFoundException e) {
+							}
+							 catch (ClassNotFoundException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							} 
@@ -176,8 +183,9 @@ public class Main extends Application {
 
 	public void cpuMove() throws ClassNotFoundException, IOException{
 		//input = new ObjectInputStream(client_socket.getInputStream());
-		drawNewBoard(board.getBoard());
-		board = (Board)input.readObject();
+		Object o = input.readObject();
+		System.out.println(o);
+		board = (Board) o;
 		printBoard();
 		//cpu.min_Max(board,0,false);//calculate cpu move
 		//board.setBoard(cpu.getResponse());//set cpu move
@@ -185,6 +193,7 @@ public class Main extends Application {
 		System.out.println("end of turn score: "+board.getScore());
 		drawNewBoard(board.getBoard());
 		user_turn = true;
+		updateTurnLabel(user_turn);
 	}
 	public void printBoard(){
 		for(int i=0;i<9;i++){
@@ -250,7 +259,21 @@ public class Main extends Application {
 			for(int j=0;j<grid.length;j++)
 				grid[i][j] = 0;
 	}
-
+	
+	public void drawTurnLabel(){
+		label_turn = new Label("Turn: ");
+		label_turn.setLayoutX(500);
+		label_turn.setLayoutY(20);
+		root.getChildren().add(label_turn);
+	}
+	public void updateTurnLabel(boolean turn){
+		System.out.println(turn);
+		if(turn){
+			label_turn.setText("Turn: Your Turn");
+		}
+		else
+			label_turn.setText("Turn: Opponents Turn");
+	}
 	public static void main(String[] args) {
 		launch(args);
 	}

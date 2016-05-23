@@ -19,9 +19,12 @@ public class Player {
 		client = c;
 		//System.out.println("client connected");
 		output = new ObjectOutputStream(client.getOutputStream());
+		
 		output.flush();
+		sendTurn(i);
 		reader = new ObjectInputStream(client.getInputStream());
 		play_ai = reader.readBoolean();
+		System.out.println(play_ai);
 	}
 	public boolean playingAI(){
 		return play_ai;
