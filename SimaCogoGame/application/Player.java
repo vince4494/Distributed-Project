@@ -13,6 +13,7 @@ public class Player {
 	ObjectInputStream reader;
 	ObjectOutputStream output;
 	boolean play_ai;
+	int selection;
 	int id;
 	public Player(int i,Socket c) throws IOException{
 		id = i;
@@ -23,7 +24,11 @@ public class Player {
 		output.flush();
 		sendTurn(i);
 		reader = new ObjectInputStream(client.getInputStream());
-		play_ai = reader.readBoolean();
+		selection = reader.readInt();
+		if(selection == 1)
+			play_ai = true;
+		else
+			play_ai = false;
 		System.out.println(play_ai);
 	}
 	public boolean playingAI(){

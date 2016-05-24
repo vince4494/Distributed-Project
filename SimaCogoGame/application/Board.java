@@ -8,6 +8,11 @@ public class Board implements Serializable {
 	private int val;
 	private Board choice;
 	private int depth;
+	boolean player1_turn;
+	boolean player2_turn;
+	boolean gameOver = false;
+	boolean saveGame = false;
+	String title;
 	
 	public Board(){
 		board = createBoard();
@@ -33,6 +38,9 @@ public class Board implements Serializable {
 	public void setVal(int v){
 		val = v;
 	}
+	public void setTitle(String t){
+		title = t;
+	}
 	public char[][] getBoard(){
 		return board;
 	}
@@ -52,10 +60,14 @@ public class Board implements Serializable {
 		depth = d;
 	}
 	public boolean gameOver(){
+		if(gameOver)
+			return true;
 		for(int i=0;i<9;i++){
-			if(board[0][i] == '-')
+			if(board[0][i] == '-'){
 				return false;
+			}
 		}
+		gameOver = true;
 		return true;
 	}
 	//creates char[][] of '-' characters. empty board

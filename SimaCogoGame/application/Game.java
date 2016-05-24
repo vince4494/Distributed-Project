@@ -1,6 +1,8 @@
 package application;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 
 public class Game implements Runnable {
 	Player player1;
@@ -23,8 +25,15 @@ public class Game implements Runnable {
 	}
 
 	public void playAI() throws IOException, ClassNotFoundException{
+		System.out.println(board.gameOver());
+		
 		while(!board.gameOver()){
+			System.out.println("waiting for board");
 			board = player1.waitBoard();
+			if(board.saveGame){
+				writeBoard(board);
+				break;
+			}
 			printBoard();
 			cpu.min_Max(board,0,false);//calculate cpu move
 			board.setBoard(cpu.getResponse());//set cpu move
@@ -47,7 +56,15 @@ public class Game implements Runnable {
 			//board.setScore(cpu.getnewScore());
 			System.out.println("end of turn score: "+board.getScore());
 			printBoard();
-		}			
+		}
+		
+	}
+	
+	public void writeBoard(Board b) throws IOException{
+		FileOutputStream fout = new FileOutputStream(board.title+".ser");
+		ObjectOutputStream oos = new ObjectOutputStream(fout);
+		oos.writeObject(b);
+		oos.close();
 	}
 	public void printBoard(){
 		for(int i=0;i<9;i++){

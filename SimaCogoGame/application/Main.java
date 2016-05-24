@@ -40,6 +40,7 @@ public class Main extends Application {
 	char marker;
 	boolean user_turn = false;
 	Label label_turn;
+	Label label_score;
 	ObjectInputStream input;
 	ObjectOutputStream output;
 	char piece;
@@ -74,7 +75,7 @@ public class Main extends Application {
 			@Override
             public void handle(ActionEvent event) {//closes window and creates a new one
             		try {
-						Connect(true);
+						Connect(1);
 					} catch (ClassNotFoundException | IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -93,7 +94,7 @@ public class Main extends Application {
             public void handle(ActionEvent event) {//closes window and creates a new one
             		
             			try {
-							Connect(false);
+							Connect(0);
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -107,26 +108,97 @@ public class Main extends Application {
         };
         play.setOnAction(connectHandler);
        root.getChildren().addAll(play);//add button to scene
+       
+		Button save = new Button("Save Game");//offer button to reset
+        save.setLayoutY(560);
+        save.setLayoutX(10);
+        EventHandler<ActionEvent> SaveHandler = new EventHandler<ActionEvent>() {
+			@Override
+            public void handle(ActionEvent event) {//closes window and creates a new one
+            		
+            			try {
+							SaveGame();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+            		}
+            	
+            
+        };
+        save.setOnAction(SaveHandler);
+       root.getChildren().addAll(save);//add button to scene
+       
+       Button load = new Button("Load Game");//offer button to reset
+       load.setLayoutY(560);
+       load.setLayoutX(90);
+       EventHandler<ActionEvent> LoadHandler = new EventHandler<ActionEvent>() {
+			@Override
+           public void handle(ActionEvent event) {//closes window and creates a new one
+           		
+           			try {
+							loadGame();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (ClassNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+           		}
+           	
+           
+       };
+       load.setOnAction(LoadHandler);
+      root.getChildren().addAll(load);//add button to scene
 	}
-	public void Connect(boolean play_ai) throws IOException, ClassNotFoundException{
+	
+	public void loadGame() throws IOException, ClassNotFoundException{
+		if(client_socket == null){
+			Connect(3);
+		}
+	}
+	public void SaveGame() throws IOException{
+		if(output != null){
+			board.player1_turn = user_turn;
+			board.saveGame = true;
+			board.setTitle("FirstGame");
+			output.writeObject(board);
+			System.out.println("Saving Game");
+		}
+	}
+	public void Connect(int option) throws IOException, ClassNotFoundException{
 		int port = 8080;
 		client_socket = new Socket(InetAddress.getLoopbackAddress(),port);
 		input = new ObjectInputStream(client_socket.getInputStream());
 		int turn = (int)input.readObject();
 		System.out.println(turn);
 		output = new ObjectOutputStream(client_socket.getOutputStream());
-		output.writeBoolean(play_ai);
+		output.writeInt(option);
 		output.flush();
-		if(turn % 2 == 0){
+		if(option == 3){
+			Object j = input.readObject();
+			System.out.println(j);
+			board = (Board) j;
 			piece = 'O';
-			user_turn = true;
-			player = true;
+			user_turn = board.player1_turn;
+			System.out.println(user_turn);
+			System.out.println("Loaded Board:");
+			printBoard();
+			drawNewBoard(board.getBoard());
 		}
 		else{
-			piece = 'X';
-			user_turn = false;
-			player = false;
-			cpuMove();
+			if(turn % 2 == 0){
+				piece = 'O';
+				user_turn = true;
+				player = true;
+			}
+			else{
+				piece = 'X';
+				user_turn = false;
+				player = false;
+				cpuMove();
+			}
 		}
 		updateTurnLabel(user_turn);
 	}
@@ -265,6 +337,11 @@ public class Main extends Application {
 		label_turn.setLayoutX(500);
 		label_turn.setLayoutY(20);
 		root.getChildren().add(label_turn);
+		
+		label_score = new Label("Score: ");
+		label_score.setLayoutX(500);
+		label_score.setLayoutY(50);
+		root.getChildren().add(label_score);
 	}
 	public void updateTurnLabel(boolean turn){
 		System.out.println(turn);
@@ -273,6 +350,8 @@ public class Main extends Application {
 		}
 		else
 			label_turn.setText("Turn: Opponents Turn");
+		
+		label_score.setText("Score: "+board.getScore());
 	}
 	public static void main(String[] args) {
 		launch(args);
