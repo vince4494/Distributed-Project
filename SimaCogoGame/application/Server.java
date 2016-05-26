@@ -40,6 +40,7 @@ public class Server {
 		      InputStream buffer = new BufferedInputStream(file);
 		      ObjectInput fileinput = new ObjectInputStream (buffer);
 		      board = (Board)fileinput.readObject();
+		      board.saveGame = false;
 		      Game g = new Game(p,board,true);
 		      p.sendBoard(board);
 		      Thread thread = new Thread(g);

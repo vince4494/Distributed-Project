@@ -31,6 +31,7 @@ public class Game implements Runnable {
 			System.out.println("waiting for board");
 			board = player1.waitBoard();
 			if(board.saveGame){
+				System.out.println("Writing board");
 				writeBoard(board);
 				break;
 			}

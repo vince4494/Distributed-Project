@@ -210,6 +210,7 @@ public class Main extends Application {
 				// TODO Auto-generated method stub
 				Point2D click = new Point2D(mevent.getX(),mevent.getY());
 				String eventname = mevent.getEventType().getName();
+				System.out.println(user_turn);
 				if(!user_turn)
 					return;
 				switch(eventname){
@@ -237,12 +238,16 @@ public class Main extends Application {
 							printBoard();
 						}
 						if(board.gameOver()){
+							Label over = new Label();
+							over.setLayoutX(500);
+							over.setLayoutY(70);
 							if(board.getScore() < 0)
-								System.out.println("YOU WON!");
+								over.setText("YOU WON!");
 							else if (board.getScore() == 0)
-								System.out.println("TIE!");
+								over.setText("TIE!");
 							else
-								System.out.println("YOU LOST!");
+								over.setText("YOU LOST!");
+							root.getChildren().add(over);
 						}
 				break;
 				}

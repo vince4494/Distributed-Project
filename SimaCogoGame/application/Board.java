@@ -90,7 +90,9 @@ public class Board implements Serializable {
 		for(int i=temp.length-1;i>=0;i--){//look for top of tile stack in col
 			if(temp[i][col] == '-'){
 				temp[i][col] = player;
-				int score = getScore()-calcScore(temp,i,col,player);
+				int score;
+				if(player == 'O')score = getScore()-calcScore(temp,i,col,player);
+				else score = getScore()+calcScore(temp,i,col,player);
 				setScore(score);//user is max
 				//System.out.println(getScore());
 				return true;
