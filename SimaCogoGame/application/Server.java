@@ -36,7 +36,7 @@ public class Server {
 			System.out.println("client connected");
 			if(p.selection == 3){
 				System.out.println("Loading game");
-		      InputStream file = new FileInputStream("FirstGame.ser");
+		      InputStream file = new FileInputStream("SavedGames/FirstGame.ser");
 		      InputStream buffer = new BufferedInputStream(file);
 		      ObjectInput fileinput = new ObjectInputStream (buffer);
 		      board = (Board)fileinput.readObject();

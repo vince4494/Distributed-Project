@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Optional;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -15,8 +16,12 @@ import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -41,8 +46,10 @@ public class Main extends Application {
 	boolean user_turn = false;
 	Label label_turn;
 	Label label_score;
+	TextField gameName;
 	ObjectInputStream input;
 	ObjectOutputStream output;
+	Alert alert;
 	char piece;
 	boolean player;
 	public Main() throws IOException{
@@ -69,7 +76,7 @@ public class Main extends Application {
 	private void resetButton(Stage oceanStage){
 		//reset button handler
 		Button res = new Button("Play AI");//offer button to reset
-        res.setLayoutY(500);
+        res.setLayoutY(460);
         res.setLayoutX(10);
         EventHandler<ActionEvent> buttonHandler = new EventHandler<ActionEvent>() {
 			@Override
@@ -87,7 +94,7 @@ public class Main extends Application {
        root.getChildren().addAll(res);//add button to scene
        
 		Button play = new Button("Connect to Player");//offer button to reset
-        play.setLayoutY(530);
+        play.setLayoutY(490);
         play.setLayoutX(10);
         EventHandler<ActionEvent> connectHandler = new EventHandler<ActionEvent>() {
 			@Override
@@ -109,15 +116,30 @@ public class Main extends Application {
         play.setOnAction(connectHandler);
        root.getChildren().addAll(play);//add button to scene
        
+       Label label1 = new Label("Game Name: ");
+       gameName = new TextField ("");
+       label1.setLayoutY(555);
+       label1.setLayoutX(10);
+       gameName.setLayoutX(80);
+       gameName.setLayoutY(550);
+       root.getChildren().addAll(label1,gameName);
 		Button save = new Button("Save Game");//offer button to reset
-        save.setLayoutY(560);
+        save.setLayoutY(520);
         save.setLayoutX(10);
         EventHandler<ActionEvent> SaveHandler = new EventHandler<ActionEvent>() {
 			@Override
             public void handle(ActionEvent event) {//closes window and creates a new one
             		
             			try {
-							SaveGame();
+            				if(gameName.getText().length() == 0){
+            					alert = new Alert(AlertType.INFORMATION);
+            					alert.setTitle(" Save Error ");
+            					alert.setHeaderText("ERROR");
+            					alert.setContentText("Please enter a name to save the game");
+            					alert.showAndWait();
+            				}
+            				else
+            					SaveGame(gameName.getText());
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -130,7 +152,7 @@ public class Main extends Application {
        root.getChildren().addAll(save);//add button to scene
        
        Button load = new Button("Load Game");//offer button to reset
-       load.setLayoutY(560);
+       load.setLayoutY(520);
        load.setLayoutX(90);
        EventHandler<ActionEvent> LoadHandler = new EventHandler<ActionEvent>() {
 			@Override
@@ -158,11 +180,11 @@ public class Main extends Application {
 			Connect(3);
 		}
 	}
-	public void SaveGame() throws IOException{
+	public void SaveGame(String title) throws IOException{
 		if(output != null){
 			board.player1_turn = user_turn;
 			board.saveGame = true;
-			board.setTitle("FirstGame");
+			board.setTitle(title);
 			output.writeObject(board);
 			System.out.println("Saving Game");
 		}

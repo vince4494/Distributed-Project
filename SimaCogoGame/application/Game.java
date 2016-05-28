@@ -33,14 +33,17 @@ public class Game implements Runnable {
 			if(board.saveGame){
 				System.out.println("Writing board");
 				writeBoard(board);
-				break;
+				board.saveGame = false;
+				
 			}
-			printBoard();
-			cpu.min_Max(board,0,false);//calculate cpu move
-			board.setBoard(cpu.getResponse());//set cpu move
-			board.setScore(cpu.getnewScore());
-			printBoard();
-			player1.sendBoard(board);
+			else{
+				printBoard();
+				cpu.min_Max(board,0,false);//calculate cpu move
+				board.setBoard(cpu.getResponse());//set cpu move
+				board.setScore(cpu.getnewScore());
+				printBoard();
+				player1.sendBoard(board);
+			}
 		}
 	}
 	
