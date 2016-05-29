@@ -2,6 +2,7 @@ package application;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +37,13 @@ public class Server {
 			System.out.println("client connected");
 			if(p.selection == 3){
 				System.out.println("Loading game");
-		      InputStream file = new FileInputStream("SavedGames/FirstGame.ser");
+				String[] files;
+				File temp = new File("SavedGames");
+				files = temp.list();
+				p.sendGames(files);
+				int option = p.waitForOption();
+				System.out.println("Choosing: " + files[option]);
+		      InputStream file = new FileInputStream("SavedGames/"+files[option]);
 		      InputStream buffer = new BufferedInputStream(file);
 		      ObjectInput fileinput = new ObjectInputStream (buffer);
 		      board = (Board)fileinput.readObject();

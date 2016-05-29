@@ -45,5 +45,12 @@ public class Player {
 		output.writeObject(i);
 		output.flush();
 	}
+	public void sendGames(String[] files) throws IOException{
+		output.writeObject(files);
+		output.flush();
+	}
+	public int waitForOption() throws ClassNotFoundException, IOException{
+		return (int) reader.readObject();
+	}
 	
 }

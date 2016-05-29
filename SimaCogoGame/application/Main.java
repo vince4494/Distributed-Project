@@ -21,7 +21,10 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.input.InputEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -52,6 +55,7 @@ public class Main extends Application {
 	Alert alert;
 	char piece;
 	boolean player;
+	TextArea chat;
 	public Main() throws IOException{
 		selection = -1;
 		grid = new int[9][9];
@@ -61,7 +65,7 @@ public class Main extends Application {
 	public void start(Stage primaryStage) {
 		try {
 			root = new AnchorPane();
-			scene = new Scene(root,600,600);
+			scene = new Scene(root,800,600);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			DrawMap();
 			drawTurnLabel();
@@ -157,7 +161,7 @@ public class Main extends Application {
        EventHandler<ActionEvent> LoadHandler = new EventHandler<ActionEvent>() {
 			@Override
            public void handle(ActionEvent event) {//closes window and creates a new one
-           		
+           			
            			try {
 							loadGame();
 						} catch (IOException e) {
@@ -199,6 +203,9 @@ public class Main extends Application {
 		output.writeInt(option);
 		output.flush();
 		if(option == 3){
+			String[] files = (String[]) input.readObject();
+			String answer = writeLoadGames(files);
+			output.writeObject(Integer.valueOf(answer));
 			Object j = input.readObject();
 			System.out.println(j);
 			board = (Board) j;
@@ -329,6 +336,24 @@ public class Main extends Application {
 		}
 		root.getChildren().add(move);
 	}
+	
+	public String writeLoadGames(String[] files){
+		chat.appendText("Choose a game to load by index:\n");
+		for(int i=0; i<files.length; i++){
+			chat.appendText("["+i+"] " + files[i] + "\n");
+		}
+		TextInputDialog dialog = new TextInputDialog("Load a Game");
+		dialog.setTitle("Load a game");
+		dialog.setHeaderText("Choose the index of the game you want to load.");
+		dialog.setContentText("Please enter your number:");
+
+		// Traditional way to get the response value.
+		Optional<String> result = dialog.showAndWait();
+		if (result.isPresent()){
+		    return result.get();
+		}
+		else return null;
+	}
 	public void DrawMap(){
 		for(int i=0;i<9;i++){
 			for(int j=0;j<9;j++){
@@ -339,6 +364,13 @@ public class Main extends Application {
 				 
 			}
 		}
+		chat = new TextArea();
+		chat.setLayoutX(9.2 * scale);
+		chat.setLayoutY(10);
+		chat.setMaxWidth(300);
+		chat.setMinHeight(500);
+		root.getChildren().add(chat);
+		
 	}
 
 	public void DrawMove(int player, Point p){
@@ -361,13 +393,13 @@ public class Main extends Application {
 	
 	public void drawTurnLabel(){
 		label_turn = new Label("Turn: ");
-		label_turn.setLayoutX(500);
-		label_turn.setLayoutY(20);
+		label_turn.setLayoutX(380);
+		label_turn.setLayoutY(9.3 * scale);
 		root.getChildren().add(label_turn);
 		
 		label_score = new Label("Score: ");
-		label_score.setLayoutX(500);
-		label_score.setLayoutY(50);
+		label_score.setLayoutX(380);
+		label_score.setLayoutY(9*scale);
 		root.getChildren().add(label_score);
 	}
 	public void updateTurnLabel(boolean turn){
