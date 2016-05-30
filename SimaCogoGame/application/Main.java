@@ -71,13 +71,13 @@ public class Main extends Application {
 			drawTurnLabel();
 			primaryStage.setScene(scene);
 			primaryStage.show();
-			resetButton(primaryStage);
+			resetButton();
 			playGame();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
-	private void resetButton(Stage oceanStage){
+	private void resetButton(){
 		//reset button handler
 		Button res = new Button("Play AI");//offer button to reset
         res.setLayoutY(460);
@@ -177,8 +177,42 @@ public class Main extends Application {
        };
        load.setOnAction(LoadHandler);
       root.getChildren().addAll(load);//add button to scene
+      
+      Button end = new Button("End Game");//offer button to reset
+      end.setLayoutY(520);
+      end.setLayoutX(170);
+      EventHandler<ActionEvent> EndHandler = new EventHandler<ActionEvent>() {
+			@Override
+          public void handle(ActionEvent event) {//closes window and creates a new one
+          			
+          			try {
+							endGame();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} 
+          		}
+          	
+          
+      };
+      end.setOnAction(EndHandler);
+     root.getChildren().addAll(end);//add button to scene
 	}
 	
+	public void endGame() throws IOException{
+		chat.appendText("Leaving Game: You Forfeit!");
+		board = new Board();
+		root.getChildren().remove(0, root.getChildren().size());
+		DrawMap();
+		resetButton();
+		input.close();
+		output.close();
+		client_socket.close();
+		client_socket = null;
+		user_turn = false;
+		chat.appendText("Leaving Game: You Forfeit!\n");
+		
+	}
 	public void loadGame() throws IOException, ClassNotFoundException{
 		if(client_socket == null){
 			Connect(3);
@@ -195,6 +229,10 @@ public class Main extends Application {
 	}
 	public void Connect(int option) throws IOException, ClassNotFoundException{
 		int port = 8080;
+		if(client_socket != null){
+			System.out.println("Game in progress!");
+			return;
+		}
 		client_socket = new Socket(InetAddress.getLoopbackAddress(),port);
 		input = new ObjectInputStream(client_socket.getInputStream());
 		int turn = (int)input.readObject();
@@ -240,8 +278,11 @@ public class Main extends Application {
 				Point2D click = new Point2D(mevent.getX(),mevent.getY());
 				String eventname = mevent.getEventType().getName();
 				System.out.println(user_turn);
-				if(!user_turn)
+				if(!user_turn){
+					printBoard();
+					drawNewBoard(board.getBoard());
 					return;
+				}
 				switch(eventname){
 				case "MOUSE_RELEASED":
 						selection = (int)(click.getX()/50);
