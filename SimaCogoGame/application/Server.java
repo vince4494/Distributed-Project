@@ -68,12 +68,12 @@ public class Server {
 				//p.sendTurn(i);
 				Players.add(p2);
 				System.out.println("client connected");
-				Chat game_chat = new Chat(p,p2);
+				//Chat game_chat = new Chat(p,p2);
 				Game g = new Game(p,p2,new Board(),false);
 				Thread thread = new Thread(g);
 				thread.start();
-				Thread chatthread = new Thread(game_chat);
-				chatthread.start();
+//				Thread chatthread = new Thread(game_chat);
+//				chatthread.start();
 				i++;
 				//g.playPlayer();
 			}

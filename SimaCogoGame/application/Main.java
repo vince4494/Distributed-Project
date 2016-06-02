@@ -45,6 +45,8 @@ public class Main extends Application {
 	Socket txt_socket;
 	int port;
 	Board board = new Board();
+	char[][] oldBoard;
+	int oldscore;
 	minMax cpu = new minMax(5);
 	char marker;
 	boolean user_turn = false;
@@ -192,7 +194,7 @@ public class Main extends Application {
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
-						} 
+						}
           		}
           	
           
@@ -200,6 +202,44 @@ public class Main extends Application {
       end.setOnAction(EndHandler);
      root.getChildren().addAll(end);//add button to scene
      
+     Button submit = new Button("Submit");//offer button to reset
+     submit.setLayoutY(9.1*scale);
+     submit.setLayoutX(6.3*scale);
+     EventHandler<ActionEvent> SubmitHandler = new EventHandler<ActionEvent>() {
+			@Override
+         public void handle(ActionEvent event) {//closes window and creates a new one
+         			
+         			try {
+							submitMove();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (ClassNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+         		}
+         	
+         
+     };
+     submit.setOnAction(SubmitHandler);
+    root.getChildren().addAll(submit);//add button to scene
+    
+    Button undo = new Button("Undo");//offer button to reset
+    undo.setLayoutY(9.1*scale);
+    undo.setLayoutX(5.3*scale);
+    EventHandler<ActionEvent> UndoHandler = new EventHandler<ActionEvent>() {
+			@Override
+        public void handle(ActionEvent event) {//closes window and creates a new one
+							System.out.println("Undoing move");
+							undoMove();
+        		}
+        	
+        
+    };
+    undo.setOnAction(UndoHandler);
+   root.getChildren().addAll(undo);//add button to scene
+   
      Button send = new Button("Send");//offer button to reset
      send.setLayoutY(520);
      send.setLayoutX(8 * scale);
@@ -220,7 +260,19 @@ public class Main extends Application {
      send.setOnAction(SendHandler);
     root.getChildren().addAll(send);//add button to scene
 	}
-	
+	public void undoMove(){
+		board.setBoard(oldBoard);
+		board.setScore(oldscore);
+		drawNewBoard(oldBoard);
+		user_turn = true;
+		updateTurnLabel(user_turn);
+	//	root.getChildren().remove(root.getChildren().size()-1);
+	}
+	public void submitMove() throws IOException, ClassNotFoundException{
+		output.writeObject(board);
+		output.flush();
+		cpuMove();
+	}
 	public void sendMessage() throws IOException{
 		String message = usrChat.getText();
 		output.writeObject(message);
@@ -310,30 +362,34 @@ public class Main extends Application {
 				System.out.println(user_turn);
 				if(!user_turn){
 					printBoard();
-					drawNewBoard(board.getBoard());
+					//drawNewBoard(board.getBoard());
 					return;
 				}
 				switch(eventname){
 				case "MOUSE_RELEASED":
+						if((click.getX() > (9 * scale)) || (click.getY() > (9*scale)))
+							return;
 						selection = (int)(click.getX()/50);
 						System.out.println(selection);
+						oldBoard = boardCopy(board.getBoard());
+						oldscore = new Integer(board.getScore());
 						if(board.makeMove(board.getBoard(),selection,piece)){
 							user_turn = false;
 							updateTurnLabel(false);
 							printBoard();
-							try {
+//							try {
 								drawNewBoard(board.getBoard());
-								output.writeObject(board);
-								output.flush();
-								cpuMove();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							 catch (ClassNotFoundException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} 
+								//output.writeObject(board);
+								//output.flush();
+								//cpuMove();
+//							} catch (IOException e) {
+//								// TODO Auto-generated catch block
+//								e.printStackTrace();
+//							}
+//							 catch (ClassNotFoundException e) {
+//								// TODO Auto-generated catch block
+//								e.printStackTrace();
+//							} 
 							
 							printBoard();
 						}
@@ -365,7 +421,7 @@ public class Main extends Application {
 			String message = "Opponent: ";
 			if(o.getClass() == message.getClass()) chat.appendText(message + ((String)o) + "\n");
 		}
-
+		oldBoard = boardCopy(board.getBoard());
 		board = (Board) o;
 		printBoard();
 		//cpu.min_Max(board,0,false);//calculate cpu move
@@ -391,6 +447,7 @@ public class Main extends Application {
 					drawMove(i,j,true);
 				else if(b[i][j] == 'X')
 					drawMove(i,j,false);
+				else drawWhite(i,j);
 
 			}
 		}
@@ -406,9 +463,18 @@ public class Main extends Application {
 			move.setFill(Color.GREEN);
 			System.out.println("green block ");
 		}
-		else {
+		else{
 			move.setFill(Color.BLUE);
 		}
+		root.getChildren().add(move);
+	}
+	public void drawWhite(int i,int j){
+//		while(row >= 0 && board.getBoard()[row][col] != '-'){
+//			row--;
+//		}
+		Rectangle move = new Rectangle((j)*scale,(i)*scale,scale,scale);
+		move.setFill(Color.WHITE);
+		move.setStroke(Color.BLACK);
 		root.getChildren().add(move);
 	}
 	
@@ -492,6 +558,15 @@ public class Main extends Application {
 			label_turn.setText("Turn: Opponents Turn");
 		
 		label_score.setText("Score: "+board.getScore());
+	}
+	public char[][] boardCopy(char[][] currboard){
+		char[][] temp = new char[9][9];
+		for(int i=0;i<9;i++)
+			for(int j=0;j<9;j++)
+				temp[i][j] = currboard[i][j];
+		
+		return temp;
+				
 	}
 	public static void main(String[] args) {
 		launch(args);
