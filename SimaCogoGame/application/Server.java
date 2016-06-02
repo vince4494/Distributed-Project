@@ -55,9 +55,12 @@ public class Server {
 		      fileinput.close();
 			}
 			else if(p.playingAI()){
+				int difficulty = p.reader.readInt();
+				System.out.println("Difficulty: "+difficulty);
 				board = new Board();
 				board.chat = false;
 				Game g = new Game(p,board,true);
+				g.cpu.setMaxDepth(difficulty);
 				Thread thread = new Thread(g);
 				thread.start();
 			}

@@ -19,6 +19,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -58,6 +59,7 @@ public class Main extends Application {
 	ObjectOutputStream output;
 	Alert alert;
 	char piece;
+	int difficulty;
 	boolean player;
 	TextArea chat;
 	public Main() throws IOException{
@@ -90,6 +92,28 @@ public class Main extends Application {
 			@Override
             public void handle(ActionEvent event) {//closes window and creates a new one
             		try {
+            			Alert alert = new Alert(AlertType.CONFIRMATION);
+            			alert.setTitle("Play AI");
+            			alert.setHeaderText("Difficulty");
+            			alert.setContentText("Choose the difficulty of the opponent");
+
+            			ButtonType buttonTypeOne = new ButtonType("Easy");
+            			ButtonType buttonTypeTwo = new ButtonType("Medium");
+            			ButtonType buttonTypeThree = new ButtonType("Hard");
+            			ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+
+            			alert.getButtonTypes().setAll(buttonTypeOne, buttonTypeTwo, buttonTypeThree, buttonTypeCancel);
+
+            			Optional<ButtonType> result = alert.showAndWait();
+            			if (result.get() == buttonTypeOne){
+            			    difficulty = 3;
+            			} else if (result.get() == buttonTypeTwo) {
+            			    difficulty = 5;
+            			} else if (result.get() == buttonTypeThree) {
+            			    difficulty = 7;
+            			} else {
+            			    // ... user chose CANCEL or closed the dialog
+            			}
 						Connect(1);
 					} catch (ClassNotFoundException | IOException e) {
 						// TODO Auto-generated catch block
@@ -322,6 +346,11 @@ public class Main extends Application {
 		output = new ObjectOutputStream(client_socket.getOutputStream());
 		output.writeInt(option);
 		output.flush();
+		if(option == 1){
+			System.out.println("Difficulty: " + difficulty);
+			output.writeInt(difficulty);
+			output.flush();
+		}
 		if(option == 3){
 			String[] files = (String[]) input.readObject();
 			String answer = writeLoadGames(files);
