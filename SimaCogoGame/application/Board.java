@@ -13,7 +13,7 @@ public class Board implements Serializable {
 	boolean gameOver = false;
 	boolean saveGame = false;
 	String title;
-	
+	boolean chat = true;
 	public Board(){
 		board = createBoard();
 		score = 0;//game score

@@ -42,6 +42,7 @@ public class Main extends Application {
 	Scene scene;
 	Simacogo go;
 	Socket client_socket;
+	Socket txt_socket;
 	int port;
 	Board board = new Board();
 	minMax cpu = new minMax(5);
@@ -50,6 +51,7 @@ public class Main extends Application {
 	Label label_turn;
 	Label label_score;
 	TextField gameName;
+	TextArea usrChat;
 	ObjectInputStream input;
 	ObjectOutputStream output;
 	Alert alert;
@@ -197,8 +199,36 @@ public class Main extends Application {
       };
       end.setOnAction(EndHandler);
      root.getChildren().addAll(end);//add button to scene
+     
+     Button send = new Button("Send");//offer button to reset
+     send.setLayoutY(520);
+     send.setLayoutX(8 * scale);
+     EventHandler<ActionEvent> SendHandler = new EventHandler<ActionEvent>() {
+			@Override
+         public void handle(ActionEvent event) {//closes window and creates a new one
+         			try {
+						sendMessage();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+         		
+         		}
+         	
+         
+     };
+     send.setOnAction(SendHandler);
+    root.getChildren().addAll(send);//add button to scene
 	}
 	
+	public void sendMessage() throws IOException{
+		String message = usrChat.getText();
+		output.writeObject(message);
+		output.flush();
+		usrChat.setText("");
+		chat.appendText("You: " + message + "\n");
+		
+	}
 	public void endGame() throws IOException{
 		chat.appendText("Leaving Game: You Forfeit!");
 		board = new Board();
@@ -330,8 +360,12 @@ public class Main extends Application {
 
 	public void cpuMove() throws ClassNotFoundException, IOException{
 		//input = new ObjectInputStream(client_socket.getInputStream());
-		Object o = input.readObject();
-		System.out.println(o);
+		Object o;
+		while((o = input.readObject()).getClass() != board.getClass()){
+			String message = "Opponent: ";
+			if(o.getClass() == message.getClass()) chat.appendText(message + ((String)o) + "\n");
+		}
+
 		board = (Board) o;
 		printBoard();
 		//cpu.min_Max(board,0,false);//calculate cpu move
@@ -411,6 +445,12 @@ public class Main extends Application {
 		chat.setMaxWidth(300);
 		chat.setMinHeight(500);
 		root.getChildren().add(chat);
+		usrChat = new TextArea();
+		usrChat.setLayoutX(9.2 * scale);
+		usrChat.setLayoutY(10.3*scale);
+		usrChat.setMaxWidth(300);
+		usrChat.setMaxHeight(40);
+		root.getChildren().add(usrChat);
 		
 	}
 

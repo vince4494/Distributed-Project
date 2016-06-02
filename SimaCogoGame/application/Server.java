@@ -55,7 +55,9 @@ public class Server {
 		      fileinput.close();
 			}
 			else if(p.playingAI()){
-				Game g = new Game(p,new Board(),true);
+				board = new Board();
+				board.chat = false;
+				Game g = new Game(p,board,true);
 				Thread thread = new Thread(g);
 				thread.start();
 			}
@@ -66,9 +68,12 @@ public class Server {
 				//p.sendTurn(i);
 				Players.add(p2);
 				System.out.println("client connected");
+				Chat game_chat = new Chat(p,p2);
 				Game g = new Game(p,p2,new Board(),false);
 				Thread thread = new Thread(g);
 				thread.start();
+				Thread chatthread = new Thread(game_chat);
+				chatthread.start();
 				i++;
 				//g.playPlayer();
 			}

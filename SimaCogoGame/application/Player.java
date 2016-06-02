@@ -38,11 +38,17 @@ public class Player {
 		output.writeObject(b);
 		output.flush();
 	}
-	public Board waitBoard() throws ClassNotFoundException, IOException{
-		return (Board) reader.readObject();
+	public Object waitBoard() throws ClassNotFoundException, IOException{
+		Object o = reader.readObject();
+		System.out.println(o);
+		return o;
 	}
 	public void sendTurn(int i) throws IOException{
 		output.writeObject(i);
+		output.flush();
+	}
+	public void writeObject(Object o ) throws IOException{
+		output.writeObject(o);
 		output.flush();
 	}
 	public void sendGames(String[] files) throws IOException{

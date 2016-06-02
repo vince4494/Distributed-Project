@@ -29,7 +29,7 @@ public class Game implements Runnable {
 		
 		while(!board.gameOver()){
 			System.out.println("waiting for board");
-			board = player1.waitBoard();
+			board = (Board) player1.waitBoard();
 			if(board.saveGame){
 				System.out.println("Writing board");
 				writeBoard(board);
@@ -49,10 +49,18 @@ public class Game implements Runnable {
 	
 	public void playPlayer() throws IOException, ClassNotFoundException{
 		while(!board.gameOver()){
-			board = player1.waitBoard();
+			Object o;
+			while((o = player1.waitBoard()).getClass() != board.getClass()){
+				player2.writeObject(o);
+			}
+			board = (Board) o;
 			printBoard();
 			player2.sendBoard(board);
-			board = player2.waitBoard();
+			while((o = player2.waitBoard()).getClass() != board.getClass()){
+				player1.writeObject(o);
+			}
+			board = (Board) o;
+			//board = (Board) player2.waitBoard();
 			printBoard();
 			player1.sendBoard(board);
 			//cpu.min_Max(board,0,false);//calculate cpu move
