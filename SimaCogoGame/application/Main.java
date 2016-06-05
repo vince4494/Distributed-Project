@@ -62,6 +62,7 @@ public class Main extends Application {
 	int difficulty;
 	boolean player;
 	TextArea chat;
+	boolean play_ai = false;
 	public Main() throws IOException{
 		selection = -1;
 		grid = new int[9][9];
@@ -92,6 +93,7 @@ public class Main extends Application {
 			@Override
             public void handle(ActionEvent event) {//closes window and creates a new one
             		try {
+            			play_ai = true;
             			Alert alert = new Alert(AlertType.CONFIRMATION);
             			alert.setTitle("Play AI");
             			alert.setHeaderText("Difficulty");
@@ -126,6 +128,7 @@ public class Main extends Application {
        root.getChildren().addAll(res);//add button to scene
        
 		Button play = new Button("Connect to Player");//offer button to reset
+		
         play.setLayoutY(490);
         play.setLayoutX(10);
         EventHandler<ActionEvent> connectHandler = new EventHandler<ActionEvent>() {
@@ -133,6 +136,7 @@ public class Main extends Application {
             public void handle(ActionEvent event) {//closes window and creates a new one
             		
             			try {
+            				play_ai = false;
 							Connect(0);
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
@@ -271,6 +275,10 @@ public class Main extends Application {
 			@Override
          public void handle(ActionEvent event) {//closes window and creates a new one
          			try {
+         				if(play_ai){
+         					chat.appendText("Chat function is disabled when playing the CPU\n");
+         					return;
+         				}
 						sendMessage();
 					} catch (IOException e) {
 						// TODO Auto-generated catch block

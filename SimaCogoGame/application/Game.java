@@ -73,7 +73,7 @@ public class Game implements Runnable {
 	}
 	
 	public void writeBoard(Board b) throws IOException{
-		FileOutputStream fout = new FileOutputStream(board.title+".ser");
+		FileOutputStream fout = new FileOutputStream("SavedGames/"+board.title+".ser");
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
 		oos.writeObject(b);
 		oos.close();
