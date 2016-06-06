@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class Player {
 	int port;
@@ -39,17 +40,31 @@ public class Player {
 		output.flush();
 	}
 	public Object waitBoard() throws ClassNotFoundException, IOException{
-		Object o = reader.readObject();
-		System.out.println(o);
-		return o;
+		try{
+			Object o = reader.readObject();
+			System.out.println(o);
+			return o;
+		}
+		catch (SocketException e){
+			System.out.println("Player has left");
+			return null;
+		} catch (Exception e){
+			System.out.println(e.getMessage());
+			return null;
+		}
 	}
 	public void sendTurn(int i) throws IOException{
 		output.writeObject(i);
 		output.flush();
 	}
-	public void writeObject(Object o ) throws IOException{
-		output.writeObject(o);
-		output.flush();
+	public void writeObject(Object o ) throws IOException, SocketException{
+		try{
+			output.writeObject(o);
+			output.flush();
+		}
+		catch (Exception e){
+			System.out.println(e.getMessage());
+		}
 	}
 	public void sendGames(String[] files) throws IOException{
 		output.writeObject(files);
