@@ -352,13 +352,14 @@ public class Main extends Application {
 	//function to get high scores from when a game ends
 	public void getHighScore()
 	{
-		Integer score = board.getScore();
-		highScores.add(score);
-		Collections.sort(highScores,Collections.reverseOrder());
+
 
 		//condition for when game ends
 		if(board.gameOver())
 		{
+			Integer score = board.getScore();
+			highScores.add(score);
+			Collections.sort(highScores,Collections.reverseOrder());
 			//if list does not equal 5 then still loop through and print
 			//since we do not want to get an index out of bonds error
 			if(highScores.size() < 5)
