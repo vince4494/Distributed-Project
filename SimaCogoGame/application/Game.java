@@ -11,6 +11,7 @@ public class Game implements Runnable {
 	Board board;
 	minMax cpu = new minMax(5);
 	boolean ai;
+	
 	public Game(Player p1, Player p2,Board b,boolean playai){
 		player1 = p1;
 		player2 = p2;
@@ -19,12 +20,14 @@ public class Game implements Runnable {
 		System.out.println("game");
 		System.out.println(ai);
 	}
+	
 	public Game(Player p1,Board b,boolean playai){
 		player1 = p1;
 		board = b;
 		ai = playai;
 	}
 
+	//if plyer is playing AI initiate game loop and MinMax algorithm 
 	public void playAI() throws IOException, ClassNotFoundException, SocketException{
 		System.out.println(board.gameOver());
 		
@@ -61,6 +64,7 @@ public class Game implements Runnable {
 		}
 	}
 	
+	//if player is playing another player initiate game loop that waits for board and passes between the two.
 	public void playPlayer() throws IOException, ClassNotFoundException{
 		while(!board.gameOver()){
 			Object o;
@@ -101,18 +105,22 @@ public class Game implements Runnable {
 		
 	}
 	
+	//close player sockets
 	public void closeSockets() throws IOException{
 		player1.reader.close();
 		player2.reader.close();
 		player1.output.close();
 		player2.output.close();
 	}
+	//save board to saved games folder 
 	public void writeBoard(Board b) throws IOException{
 		FileOutputStream fout = new FileOutputStream("SavedGames/"+board.title+".ser");
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
 		oos.writeObject(b);
 		oos.close();
 	}
+	
+	//print he current board 
 	public void printBoard(){
 		for(int i=0;i<9;i++){
 			for(int j=0; j<9;j++)
@@ -121,6 +129,8 @@ public class Game implements Runnable {
 		}
 		System.out.println("");
 	}
+	
+	//Handles if game is PVP or pvai
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub

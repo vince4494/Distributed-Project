@@ -34,14 +34,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
-
+//client side class
+//handles buttons and interactions with server
 public class Main extends Application {
 	int[][] grid;
 	final int scale = 50;
 	Pane root;
 	int selection;
 	Scene scene;
-	Simacogo go;
 	Socket client_socket;
 	Socket txt_socket;
 	int port;
@@ -66,9 +66,9 @@ public class Main extends Application {
 	boolean play_ai = false;
 	public Main() throws IOException{
 		selection = -1;
-		grid = new int[9][9];
-		//Connect();
 	}
+	
+	//Draws map and initiates buttons and game
 	@Override
 	public void start(Stage primaryStage) {
 		try {
@@ -85,6 +85,8 @@ public class Main extends Application {
 			e.printStackTrace();
 		}
 	}
+	
+	//Game buttons (reset, save, load, end, play ai, connect to player, submit, undo, send) 
 	private void resetButton(){
 		//reset button handler
 		Button res = new Button("Play AI");//offer button to reset
@@ -308,14 +310,17 @@ public class Main extends Application {
      send.setOnAction(SendHandler);
     root.getChildren().addAll(send);//add button to scene
 	}
+	
+	//undo move and redraw board to previous board.
 	public void undoMove(){
 		board.setBoard(oldBoard);
 		board.setScore(oldscore);
 		drawNewBoard(oldBoard);
 		user_turn = true;
 		updateTurnLabel(user_turn);
-	//	root.getChildren().remove(root.getChildren().size()-1);
 	}
+	
+	//submit a move to server and check if game is over.
 	public void submitMove() throws IOException, ClassNotFoundException{
 		if(submit){
 			output.writeObject(board);
@@ -332,6 +337,7 @@ public class Main extends Application {
 		}
 
 	}
+	
 	public void getHighScore()
 	{
 
@@ -380,6 +386,8 @@ public class Main extends Application {
 			}
 		}
 	}
+	
+	//returns true if boards are equivalent
 	public boolean boardEquals(char[][] b1, char[][] b2){
 		for(int i=0;i<9;i++){
 			for(int j=0; j<9; j++){
@@ -388,6 +396,8 @@ public class Main extends Application {
 		}
 		return true;
 	}
+	
+	//sends string from chat input to server
 	public void sendMessage() throws IOException{
 		String message = usrChat.getText();
 		output.writeObject(message);
@@ -396,6 +406,8 @@ public class Main extends Application {
 		chat.appendText("You: " + message + "\n");
 		
 	}
+	
+	//disconnect from server and redraw window
 	public void endGame() throws IOException{
 		chat.appendText("Leaving Game: You Forfeit!");
 		board = new Board();
@@ -411,11 +423,15 @@ public class Main extends Application {
 		chat.appendText("Leaving Game!\n");
 		
 	}
+	
+	//connect to server and load a chosen game
 	public void loadGame() throws IOException, ClassNotFoundException{
 		if(client_socket == null){
 			Connect(3);
 		}
 	}
+	
+	//save current game board to server. 
 	public void SaveGame(String title) throws IOException{
 		if(output != null){
 			board.player1_turn = user_turn;
@@ -425,6 +441,8 @@ public class Main extends Application {
 			System.out.println("Saving Game");
 		}
 	}
+	
+	//connect client to server and option argument
 	public void Connect(int option) throws IOException, ClassNotFoundException{
 		int port = 8080;
 		if(client_socket != null){
@@ -472,6 +490,8 @@ public class Main extends Application {
 		}
 		updateTurnLabel(user_turn);
 	}
+	
+	//click handler to place tile on screen and affect the board. 
 	public void playGame() throws ClassNotFoundException, IOException{
 		EventHandler<MouseEvent> mouseHandler = new EventHandler<MouseEvent>(){
 
@@ -495,23 +515,10 @@ public class Main extends Application {
 						oldBoard = boardCopy(board.getBoard());
 						oldscore = new Integer(board.getScore());
 						if(board.makeMove(board.getBoard(),selection,piece)){
-//							try {
 							submit = true;
 							user_turn = false;
 							drawNewBoard(board.getBoard());
-							updateTurnLabel(user_turn);
-								//output.writeObject(board);
-								//output.flush();
-								//cpuMove();
-//							} catch (IOException e) {
-//								// TODO Auto-generated catch block
-//								e.printStackTrace();
-//							}
-//							 catch (ClassNotFoundException e) {
-//								// TODO Auto-generated catch block
-//								e.printStackTrace();
-//							} 
-							
+							updateTurnLabel(user_turn);						
 							printBoard();
 						}
 				break;
@@ -520,8 +527,9 @@ public class Main extends Application {
 		
 		};
 		scene.setOnMouseReleased(mouseHandler);
-		//printBoard();//print board
 	}
+	
+	//if game is over, return winner and loser 
 	public boolean gameOver(){
 		if(board.gameOver()){
 			user_turn = false;
@@ -537,8 +545,9 @@ public class Main extends Application {
 		}
 		return false;
 	}
+	
+	//wait for server response and draw new board 
 	public void cpuMove() throws ClassNotFoundException, IOException{
-		//input = new ObjectInputStream(client_socket.getInputStream());
 		Object o;
 		while((o = input.readObject()).getClass() != board.getClass()){
 			String message = "Opponent: ";
@@ -547,9 +556,6 @@ public class Main extends Application {
 		oldBoard = boardCopy(board.getBoard());
 		board = (Board) o;
 		printBoard();
-		//cpu.min_Max(board,0,false);//calculate cpu move
-		//board.setBoard(cpu.getResponse());//set cpu move
-		//board.setScore(cpu.getnewScore());
 		System.out.println("end of turn score: "+board.getScore());
 		drawNewBoard(board.getBoard());
 		if(!gameOver()){
@@ -557,6 +563,8 @@ public class Main extends Application {
 			updateTurnLabel(user_turn);
 		}
 	}
+	
+	//prints current board 
 	public void printBoard(){
 		for(int i=0;i<9;i++){
 			for(int j=0; j<9;j++)
@@ -565,6 +573,8 @@ public class Main extends Application {
 		}
 		System.out.println("");
 	}
+	
+	//draw new board on screen
 	public void drawNewBoard(char[][] b){
 		for(int i=8;i>=0;i--){
 			for(int j=8;j>=0;j--){
@@ -577,32 +587,26 @@ public class Main extends Application {
 			}
 		}
 	}
+	
+	//draw a move on the screen
 	public void drawMove(int i,int j,boolean player){
-		int col = selection;
-		int row = 8;
-//		while(row >= 0 && board.getBoard()[row][col] != '-'){
-//			row--;
-//		}
 		Rectangle move = new Rectangle((j)*scale,(i)*scale,scale,scale);
-		if(player){
+		if(player)
 			move.setFill(Color.GREEN);
-			System.out.println("green block ");
-		}
-		else{
+		else
 			move.setFill(Color.BLUE);
-		}
 		root.getChildren().add(move);
 	}
+	
+	//draw white block
 	public void drawWhite(int i,int j){
-//		while(row >= 0 && board.getBoard()[row][col] != '-'){
-//			row--;
-//		}
 		Rectangle move = new Rectangle((j)*scale,(i)*scale,scale,scale);
 		move.setFill(Color.WHITE);
 		move.setStroke(Color.BLACK);
 		root.getChildren().add(move);
 	}
 	
+	//inform user on load game options. 
 	public String writeLoadGames(String[] files){
 		chat.appendText("Choose a game to load by index:\n");
 		for(int i=0; i<files.length; i++){
@@ -620,6 +624,8 @@ public class Main extends Application {
 		}
 		else return null;
 	}
+	
+	//draw board and chat 
 	public void DrawMap(){
 		for(int i=0;i<9;i++){
 			for(int j=0;j<9;j++){
@@ -645,6 +651,7 @@ public class Main extends Application {
 		
 	}
 
+	//draw player move
 	public void DrawMove(int player, Point p){
 		Circle move  = new Circle();
 		move.setCenterX(p.getX()*scale);
@@ -657,12 +664,8 @@ public class Main extends Application {
 		
 				
 	}
-	public void emptygrid(){
-		for(int i=0;i<grid.length;i++)
-			for(int j=0;j<grid.length;j++)
-				grid[i][j] = 0;
-	}
 	
+	//draw turn and score labels
 	public void drawTurnLabel(){
 		label_turn = new Label("Turn: ");
 		label_turn.setLayoutX(370);
@@ -674,6 +677,8 @@ public class Main extends Application {
 		label_score.setLayoutY(9*scale);
 		root.getChildren().add(label_score);
 	}
+	
+	//updates the score and turn labels 
 	public void updateTurnLabel(boolean turn){
 		System.out.println(turn);
 		if(turn){
@@ -684,6 +689,8 @@ public class Main extends Application {
 		
 		label_score.setText("Score: "+board.getScore());
 	}
+	
+	//create a copy of the current board 
 	public char[][] boardCopy(char[][] currboard){
 		char[][] temp = new char[9][9];
 		for(int i=0;i<9;i++)
@@ -693,6 +700,7 @@ public class Main extends Application {
 		return temp;
 				
 	}
+	
 	public static void main(String[] args) {
 		launch(args);
 	}

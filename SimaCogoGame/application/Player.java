@@ -19,7 +19,6 @@ public class Player {
 	public Player(int i,Socket c) throws IOException{
 		id = i;
 		client = c;
-		//System.out.println("client connected");
 		output = new ObjectOutputStream(client.getOutputStream());
 		
 		output.flush();
@@ -32,13 +31,19 @@ public class Player {
 			play_ai = false;
 		System.out.println(play_ai);
 	}
+	
+	//is playing cpu
 	public boolean playingAI(){
 		return play_ai;
 	}
+	
+	//send board out socket
 	public void sendBoard(Board b) throws IOException{
 		output.writeObject(b);
 		output.flush();
 	}
+	
+	//wait for board and handle if socket connection error. 
 	public Object waitBoard() throws ClassNotFoundException, IOException{
 		try{
 			Object o = reader.readObject();
@@ -53,10 +58,14 @@ public class Player {
 			return null;
 		}
 	}
+	
+	//send integer 
 	public void sendTurn(int i) throws IOException{
 		output.writeObject(i);
 		output.flush();
 	}
+	
+	//write object out socket 
 	public void writeObject(Object o ) throws IOException, SocketException{
 		try{
 			output.writeObject(o);
@@ -66,10 +75,14 @@ public class Player {
 			System.out.println(e.getMessage());
 		}
 	}
+	
+	//send list of saved games 
 	public void sendGames(String[] files) throws IOException{
 		output.writeObject(files);
 		output.flush();
 	}
+	
+	//wait for selection 
 	public int waitForOption() throws ClassNotFoundException, IOException{
 		return (int) reader.readObject();
 	}

@@ -28,6 +28,10 @@ public class Server {
 		port = p;
 		server_socket = new ServerSocket(port);
 	}
+	
+	//listens to socket connection and processes options to connect to
+	// another player or initiate a game with the AI. 
+	// Once game has been determined creates thread and restarts loop.
 	public void listen() throws IOException, ClassNotFoundException{
 		int i=0;
 		while (true){
@@ -82,37 +86,9 @@ public class Server {
 			}
 		}
 
-//		output = new ObjectOutputStream(client_socket.getOutputStream());
-//		output.flush();
-		//reader = new ObjectInputStream(client_socket.getInputStream());
-//		if(Players.get(0).playingAI()){
-//			while(!board.gameOver()){
-//				board = Players.get(0).waitBoard();
-//				printBoard();
-//				cpu.min_Max(board,0,false);//calculate cpu move
-//				board.setBoard(cpu.getResponse());//set cpu move
-//				board.setScore(cpu.getnewScore());
-//				printBoard();
-//				Players.get(0).sendBoard(board);
-//			}
-//		}
-//		else{
-//			while(!board.gameOver()){
-//				board = Players.get(0).waitBoard();
-//				printBoard();
-//				Players.get(1).sendBoard(board);
-//				board = Players.get(1).waitBoard();
-//				printBoard();
-//				Players.get(0).sendBoard(board);
-//				//cpu.min_Max(board,0,false);//calculate cpu move
-//				//board.setBoard(cpu.getResponse());//set cpu move
-//				//board.setScore(cpu.getnewScore());
-//				System.out.println("end of turn score: "+board.getScore());
-//				printBoard();
-//			}			
-//		}
-
 	}
+	
+	//print current board 
 	public void printBoard(){
 		for(int i=0;i<9;i++){
 			for(int j=0; j<9;j++)
@@ -121,6 +97,8 @@ public class Server {
 		}
 		System.out.println("");
 	}
+	
+	//create server and listen for connections.
 	public static void main(String[] args) throws IOException, ClassNotFoundException{
 		if(args.length != 1){
 			return;
