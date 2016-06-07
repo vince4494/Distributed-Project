@@ -34,7 +34,7 @@ public class Game implements Runnable {
 				Object o = player1.waitBoard();
 				if(o == null){
 					board.gameOver = true;
-					closeSockets();
+					//closeSockets();
 					return;
 				}
 				else

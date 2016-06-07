@@ -322,7 +322,13 @@ public class Main extends Application {
 			output.flush();
 			user_turn = false;
 			submit = false;
-			cpuMove();
+			updateTurnLabel(user_turn);
+			if(board.gameOver()){
+				gameOver();
+				return;
+			}
+			else
+				cpuMove();
 		}
 
 	}
@@ -395,13 +401,14 @@ public class Main extends Application {
 		board = new Board();
 		root.getChildren().remove(0, root.getChildren().size());
 		DrawMap();
+		drawTurnLabel();
 		resetButton();
 		input.close();
 		output.close();
 		client_socket.close();
 		client_socket = null;
 		user_turn = false;
-		chat.appendText("Leaving Game: You Forfeit!\n");
+		chat.appendText("Leaving Game!\n");
 		
 	}
 	public void loadGame() throws IOException, ClassNotFoundException{
@@ -492,6 +499,7 @@ public class Main extends Application {
 							submit = true;
 							user_turn = false;
 							drawNewBoard(board.getBoard());
+							updateTurnLabel(user_turn);
 								//output.writeObject(board);
 								//output.flush();
 								//cpuMove();
@@ -506,7 +514,6 @@ public class Main extends Application {
 							
 							printBoard();
 						}
-						gameOver();
 				break;
 				}
 			}
@@ -517,7 +524,10 @@ public class Main extends Application {
 	}
 	public boolean gameOver(){
 		if(board.gameOver()){
-			if(board.getScore() < 0)
+			user_turn = false;
+			if(piece == 'O' && board.getScore() < 0)
+				chat.appendText("YOU WON!");
+			else if(piece == 'X' && board.getScore() > 0)
 				chat.appendText("YOU WON!");
 			else if (board.getScore() == 0)
 				chat.appendText("TIE!");
@@ -655,12 +665,12 @@ public class Main extends Application {
 	
 	public void drawTurnLabel(){
 		label_turn = new Label("Turn: ");
-		label_turn.setLayoutX(380);
+		label_turn.setLayoutX(370);
 		label_turn.setLayoutY(9.3 * scale);
 		root.getChildren().add(label_turn);
 		
 		label_score = new Label("Score: ");
-		label_score.setLayoutX(380);
+		label_score.setLayoutX(370);
 		label_score.setLayoutY(9*scale);
 		root.getChildren().add(label_score);
 	}
@@ -670,7 +680,7 @@ public class Main extends Application {
 			label_turn.setText("Turn: Your Turn");
 		}
 		else
-			label_turn.setText("Turn: Opponents Turn");
+			label_turn.setText("Turn: Opponents \n         Turn");
 		
 		label_score.setText("Score: "+board.getScore());
 	}
