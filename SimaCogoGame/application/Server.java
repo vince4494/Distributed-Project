@@ -42,7 +42,9 @@ public class Server {
 			Player p = new Player(i,client_socket);
 			Players.add(p);
 			System.out.println("client connected");
-			if(p.selection == 3){
+			if(p.selection == 3)
+			{
+				
 				System.out.println("Loading game");
 				String[] files;
 				File temp = new File("SavedGames");
@@ -101,6 +103,8 @@ public class Server {
 		System.out.println("");
 	}
 	
+	//Vince Zipparro: wrote printing method to print highscores
+	//print to the console
 	public void printHighScores(){
 		for(Board b : scoreb.highscores){
 			System.out.println(b.title +": " + b.getScore());
@@ -115,6 +119,9 @@ public class Server {
 			int port = Integer.valueOf(args[0]);
 			System.out.println("Listening on port: "+ port);
 			Server b = new Server(port);
+			
+			//Vince Zipparro: wrote input stream and output stream for scoreboard file
+			//creates new scoreboard file and outputs to the client
 			try{
 		      InputStream file = new FileInputStream("Scoreboard.ser");
 		      InputStream buffer = new BufferedInputStream(file);

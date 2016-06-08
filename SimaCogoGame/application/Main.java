@@ -1,5 +1,5 @@
 package application;
-	
+
 import java.awt.Point;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -68,7 +68,8 @@ public class Main extends Application {
 	public Main() throws IOException{
 		selection = -1;
 	}
-	
+
+	//Vince Zipparro: wrote start method to generate the scene
 	//Draws map and initiates buttons and game
 	@Override
 	public void start(Stage primaryStage) {
@@ -86,8 +87,10 @@ public class Main extends Application {
 			e.printStackTrace();
 		}
 	}
-	
-	//Game buttons (reset, save, load, end, play ai, connect to player, submit, undo, send) 
+
+
+	//Vince Zipparro: wrote event handlers for buttons
+	//Game buttons (reset, save, load, end, play ai, connect to player, submit, undo, send)
 	private void resetButton(){
 		//reset button handler
 		Button res = new Button("Play AI");//offer button to reset
@@ -126,19 +129,19 @@ public class Main extends Application {
 						e.printStackTrace();
 					}
             	}
-            
+
         };
         res.setOnAction(buttonHandler);
        root.getChildren().addAll(res);//add button to scene
-       
+
 		Button play = new Button("Connect to Player");//offer button to reset
-		
+
         play.setLayoutY(490);
         play.setLayoutX(10);
         EventHandler<ActionEvent> connectHandler = new EventHandler<ActionEvent>() {
 			@Override
             public void handle(ActionEvent event) {//closes window and creates a new one
-            		
+
             			try {
             				play_ai = false;
 							Connect(0);
@@ -150,12 +153,12 @@ public class Main extends Application {
 							e.printStackTrace();
 						}
             		}
-            	
-            
+
+
         };
         play.setOnAction(connectHandler);
        root.getChildren().addAll(play);//add button to scene
-       
+
        Label label1 = new Label("Game Name: ");
        gameName = new TextField ("");
        label1.setLayoutY(555);
@@ -163,20 +166,28 @@ public class Main extends Application {
        gameName.setLayoutX(80);
        gameName.setLayoutY(550);
        root.getChildren().addAll(label1,gameName);
-       
+
 		Button save = new Button("Save Game");//offer button to reset
         save.setLayoutY(520);
         save.setLayoutX(10);
         EventHandler<ActionEvent> SaveHandler = new EventHandler<ActionEvent>() {
 			@Override
             public void handle(ActionEvent event) {//closes window and creates a new one
-            		
+
             			try {
             				if(gameName.getText().length() == 0){
             					alert = new Alert(AlertType.INFORMATION);
             					alert.setTitle(" Save Error ");
             					alert.setHeaderText("ERROR");
             					alert.setContentText("Please enter a name to save the game");
+            					alert.showAndWait();
+            				}
+            				else if(client_socket == null)
+            				{
+            					alert = new Alert(AlertType.ERROR);
+            					alert.setTitle(" Save Error ");
+            					alert.setHeaderText("ERROR");
+            					alert.setContentText("No game started to save!");
             					alert.showAndWait();
             				}
             				else
@@ -186,19 +197,19 @@ public class Main extends Application {
 							e.printStackTrace();
 						}
             		}
-            	
-            
+
+
         };
         save.setOnAction(SaveHandler);
        root.getChildren().addAll(save);//add button to scene
-       
+
        Button load = new Button("Load Game");//offer button to reset
        load.setLayoutY(520);
        load.setLayoutX(90);
        EventHandler<ActionEvent> LoadHandler = new EventHandler<ActionEvent>() {
 			@Override
            public void handle(ActionEvent event) {//closes window and creates a new one
-           			
+
            			try {
 							loadGame();
 						} catch (IOException e) {
@@ -209,19 +220,19 @@ public class Main extends Application {
 							e.printStackTrace();
 						}
            		}
-           	
-           
+
+
        };
        load.setOnAction(LoadHandler);
       root.getChildren().addAll(load);//add button to scene
-      
+
       Button end = new Button("End Game");//offer button to reset
       end.setLayoutY(520);
       end.setLayoutX(170);
       EventHandler<ActionEvent> EndHandler = new EventHandler<ActionEvent>() {
 			@Override
           public void handle(ActionEvent event) {//closes window and creates a new one
-          			
+
           			try {
 							endGame();
 						} catch (IOException e) {
@@ -229,19 +240,19 @@ public class Main extends Application {
 							e.printStackTrace();
 						}
           		}
-          	
-          
+
+
       };
       end.setOnAction(EndHandler);
      root.getChildren().addAll(end);//add button to scene
-     
+
      Button submit = new Button("Submit");//offer button to reset
      submit.setLayoutY(9.1*scale);
      submit.setLayoutX(6.3*scale);
      EventHandler<ActionEvent> SubmitHandler = new EventHandler<ActionEvent>() {
 			@Override
          public void handle(ActionEvent event) {//closes window and creates a new one
-         			
+
          			try {
 							submitMove();
 						} catch (IOException e) {
@@ -252,12 +263,12 @@ public class Main extends Application {
 							e.printStackTrace();
 						}
          		}
-         	
-         
+
+
      };
      submit.setOnAction(SubmitHandler);
     root.getChildren().addAll(submit);//add button to scene
-    
+
     Button undo = new Button("Undo");//offer button to reset
     undo.setLayoutY(9.1*scale);
     undo.setLayoutX(5.3*scale);
@@ -267,8 +278,8 @@ public class Main extends Application {
 							System.out.println("Undoing move");
 							undoMove();
         		}
-        	
-        
+
+
     };
     undo.setOnAction(UndoHandler);
    root.getChildren().addAll(undo);//add button to scene
@@ -317,18 +328,18 @@ public class Main extends Application {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-         		
+
          		}
-         	
-         
+
+
      };
      send.setOnAction(SendHandler);
     root.getChildren().addAll(send);//add button to scene
 	}
-	
+
 	//undo move and redraw board to previous board.
 	public void undoMove(){
-		if(!undo && !board.gameOver && !user_turn && client_socket != null){
+		if(!undo && !board.gameOver){
 			board.setBoard(oldBoard);
 			board.setScore(oldscore);
 			drawNewBoard(oldBoard);
@@ -337,7 +348,7 @@ public class Main extends Application {
 			updateTurnLabel(user_turn);
 		}
 	}
-	
+
 	//submit a move to server and check if game is over.
 	public void submitMove() throws IOException, ClassNotFoundException{
 		if(submit){
@@ -356,56 +367,7 @@ public class Main extends Application {
 		}
 
 	}
-	
-	public void getHighScore()
-	{
 
-
-		//condition for when game ends
-		if(board.gameOver())
-		{
-			Integer score = board.getScore();
-			//highScores.add(score);
-		//	Collections.sort(highScores,Collections.reverseOrder());
-			//if list does not equal 5 then still loop through and print
-			//since we do not want to get an index out of bonds error
-			if(0 < 5)
-			{
-				for(int i =0; i < 0; i++)
-				{
-				//	chat.appendText(i + ":" + highScores.get(i));
-				}
-
-			}
-			else
-			{
-				for(int i = 0; i < 5; i++)
-				{
-				//	chat.appendText(i + ":" + highScores.get(i));
-				}
-			}
-		}
-		//condition for if just the button is pressed
-		else
-		{
-			if(0 < 5)
-			{
-				for(int i =0; i < 0; i++)
-				{
-					//chat.appendText(i + ":" + highScores.get(i));
-				}
-
-			}
-			else
-			{
-				for(int i = 0; i < 5; i++)
-				{
-					//chat.appendText(i + ":" + highScores.get(i));
-				}
-			}
-		}
-	}
-	
 	//returns true if boards are equivalent
 	public boolean boardEquals(char[][] b1, char[][] b2){
 		for(int i=0;i<9;i++){
@@ -415,7 +377,7 @@ public class Main extends Application {
 		}
 		return true;
 	}
-	
+
 	//sends string from chat input to server
 	public void sendMessage() throws IOException{
 		String message = usrChat.getText();
@@ -423,40 +385,53 @@ public class Main extends Application {
 		output.flush();
 		usrChat.setText("");
 		chat.appendText("You: " + message + "\n");
-		
+
 	}
-	
+
+
+	//Vince Zipparo: wrote error handling and alert boxs
 	//disconnect from server and redraw window
-	public void endGame() throws IOException{
-		if (client_socket == null){ // if game is over
-			return;
+	public void endGame() throws IOException
+	{
+		if(client_socket == null)// if game has not started yet
+		{
+			System.out.println("No game has started!");
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Error");
+			alert.setContentText("No game has started yet!");
+			alert.showAndWait();
+
 		}
-		chat.appendText("Leaving Game: You Forfeit!");
-		board = new Board();
-		oldBoard = board.getBoard();
-		root.getChildren().remove(0, root.getChildren().size());
-		DrawMap();
-		drawTurnLabel();
-		resetButton();
-		input.close();
-		output.close();
-		client_socket.close();
-		client_socket = null;
-		user_turn = false;
-		chat.appendText("Leaving Game!\n");
-		
+		else
+		{
+			chat.appendText("Leaving Game: You Forfeit!");
+			board = new Board();
+			root.getChildren().remove(0, root.getChildren().size());
+			DrawMap();
+			drawTurnLabel();
+			resetButton();
+			input.close();
+			output.close();
+			client_socket.close();
+			client_socket = null;
+			user_turn = false;
+			chat.appendText("Leaving Game!\n");
+
+		}
+
 	}
-	
+
+
 	//connect to server and load a chosen game
 	public void loadGame() throws IOException, ClassNotFoundException{
 		if(client_socket == null){
 			Connect(3);
 		}
 	}
-	
-	//save current game board to server. 
+
+	//save current game board to server.
 	public void SaveGame(String title) throws IOException{
-		if(output != null){
+		if(output != null ){
 			board.player1_turn = user_turn;
 			board.saveGame = true;
 			board.setTitle(title);
@@ -464,10 +439,10 @@ public class Main extends Application {
 			System.out.println("Saving Game");
 		}
 	}
-	
+
 	//connect client to server and option argument
 	public void Connect(int option) throws IOException, ClassNotFoundException{
-		int port = 8080;
+		int port = 8086;
 		if(client_socket != null){
 			System.out.println("Game in progress!");
 			return;
@@ -484,7 +459,9 @@ public class Main extends Application {
 			output.writeInt(difficulty);
 			output.flush();
 		}
-		if(option == 3){
+		if(option == 3)
+		{
+
 			String[] files = (String[]) input.readObject();
 			String answer = writeLoadGames(files);
 			output.writeObject(Integer.valueOf(answer));
@@ -513,8 +490,8 @@ public class Main extends Application {
 		}
 		updateTurnLabel(user_turn);
 	}
-	
-	//click handler to place tile on screen and affect the board. 
+
+	//click handler to place tile on screen and affect the board.
 	public void playGame() throws ClassNotFoundException, IOException{
 		EventHandler<MouseEvent> mouseHandler = new EventHandler<MouseEvent>(){
 
@@ -542,18 +519,19 @@ public class Main extends Application {
 							undo = false;
 							user_turn = false;
 							drawNewBoard(board.getBoard());
-							updateTurnLabel(user_turn);						
+							updateTurnLabel(user_turn);
 							printBoard();
 						}
 				break;
 				}
 			}
-		
+
 		};
 		scene.setOnMouseReleased(mouseHandler);
 	}
-	
-	//if game is over, return winner and loser 
+
+	//Vince Zipparro: wrote game over method
+	//if game is over, return winner and loser
 	public boolean gameOver() throws ClassNotFoundException, IOException{
 		if(board.gameOver()){
 			user_turn = false;
@@ -574,8 +552,8 @@ public class Main extends Application {
 		}
 		return false;
 	}
-	
-	//wait for server response and draw new board 
+
+	//wait for server response and draw new board
 	public void cpuMove() throws ClassNotFoundException, IOException{
 		Object o;
 		while((o = input.readObject()).getClass() != board.getClass()){
@@ -592,8 +570,8 @@ public class Main extends Application {
 			updateTurnLabel(user_turn);
 		}
 	}
-	
-	//prints current board 
+
+	//prints current board
 	public void printBoard(){
 		for(int i=0;i<9;i++){
 			for(int j=0; j<9;j++)
@@ -602,7 +580,7 @@ public class Main extends Application {
 		}
 		System.out.println("");
 	}
-	
+
 	//draw new board on screen
 	public void drawNewBoard(char[][] b){
 		for(int i=8;i>=0;i--){
@@ -616,7 +594,7 @@ public class Main extends Application {
 			}
 		}
 	}
-	
+
 	//draw a move on the screen
 	public void drawMove(int i,int j,boolean player){
 		Rectangle move = new Rectangle((j)*scale,(i)*scale,scale,scale);
@@ -626,7 +604,7 @@ public class Main extends Application {
 			move.setFill(Color.BLUE);
 		root.getChildren().add(move);
 	}
-	
+
 	//draw white block
 	public void drawWhite(int i,int j){
 		Rectangle move = new Rectangle((j)*scale,(i)*scale,scale,scale);
@@ -634,8 +612,8 @@ public class Main extends Application {
 		move.setStroke(Color.BLACK);
 		root.getChildren().add(move);
 	}
-	
-	//inform user on load game options. 
+
+	//inform user on load game options.
 	public String writeLoadGames(String[] files){
 		chat.appendText("Choose a game to load by index:\n");
 		for(int i=0; i<files.length; i++){
@@ -653,8 +631,9 @@ public class Main extends Application {
 		}
 		else return null;
 	}
-	
-	//draw board and chat 
+
+	//Vince Zipparro: wrote display for chat
+	//draw board and chat
 	public void DrawMap(){
 		for(int i=0;i<9;i++){
 			for(int j=0;j<9;j++){
@@ -662,7 +641,7 @@ public class Main extends Application {
 				 rect.setFill(Color.WHITE);
 				 rect.setStroke(Color.BLACK);
 				 root.getChildren().add(rect);
-				 
+
 			}
 		}
 		chat = new TextArea();
@@ -677,7 +656,7 @@ public class Main extends Application {
 		usrChat.setMaxWidth(300);
 		usrChat.setMaxHeight(40);
 		root.getChildren().add(usrChat);
-		
+
 	}
 
 	//draw player move
@@ -687,27 +666,27 @@ public class Main extends Application {
 		move.setCenterY(p.getY()*scale);
 		if (player == 0)
 			move.setFill(Color.GREEN);
-		else 
+		else
 			move.setFill(Color.BLUE);
 		root.getChildren().add(move);
-		
-				
+
+
 	}
-	
+
 	//draw turn and score labels
 	public void drawTurnLabel(){
 		label_turn = new Label("Turn: ");
 		label_turn.setLayoutX(370);
 		label_turn.setLayoutY(9.3 * scale);
 		root.getChildren().add(label_turn);
-		
+
 		label_score = new Label("Score: ");
 		label_score.setLayoutX(370);
 		label_score.setLayoutY(9*scale);
 		root.getChildren().add(label_score);
 	}
-	
-	//updates the score and turn labels 
+
+	//updates the score and turn labels
 	public void updateTurnLabel(boolean turn){
 		System.out.println(turn);
 		if(turn){
@@ -715,22 +694,22 @@ public class Main extends Application {
 		}
 		else
 			label_turn.setText("Turn: Opponents \n         Turn");
-		
+
 		label_score.setText("Score: "+board.getScore());
 		gameName.setText(board.title);
 	}
-	
-	//create a copy of the current board 
+
+	//create a copy of the current board
 	public char[][] boardCopy(char[][] currboard){
 		char[][] temp = new char[9][9];
 		for(int i=0;i<9;i++)
 			for(int j=0;j<9;j++)
 				temp[i][j] = currboard[i][j];
-		
+
 		return temp;
-				
+
 	}
-	
+
 	public static void main(String[] args) {
 		launch(args);
 	}
