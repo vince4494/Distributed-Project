@@ -100,7 +100,6 @@ public class Main extends Application {
 			@Override
             public void handle(ActionEvent event) {//closes window and creates a new one
             		try {
-            			play_ai = true;
             			Alert alert = new Alert(AlertType.CONFIRMATION);
             			alert.setTitle("Play AI");
             			alert.setHeaderText("Difficulty");
@@ -121,8 +120,10 @@ public class Main extends Application {
             			} else if (result.get() == buttonTypeThree) {
             			    difficulty = 7;
             			} else {
+            				return;
             			    // ... user chose CANCEL or closed the dialog
             			}
+            			play_ai = true;
 						Connect(1);
 					} catch (ClassNotFoundException | IOException e) {
 						// TODO Auto-generated catch block
@@ -248,7 +249,7 @@ public class Main extends Application {
 
      Button submit = new Button("Submit");//offer button to reset
      submit.setLayoutY(9.1*scale);
-     submit.setLayoutX(6.3*scale);
+     submit.setLayoutX(6.1*scale);
      EventHandler<ActionEvent> SubmitHandler = new EventHandler<ActionEvent>() {
 			@Override
          public void handle(ActionEvent event) {//closes window and creates a new one
@@ -271,7 +272,7 @@ public class Main extends Application {
 
     Button undo = new Button("Undo");//offer button to reset
     undo.setLayoutY(9.1*scale);
-    undo.setLayoutX(5.3*scale);
+    undo.setLayoutX(5.1*scale);
     EventHandler<ActionEvent> UndoHandler = new EventHandler<ActionEvent>() {
 			@Override
         public void handle(ActionEvent event) {//closes window and creates a new one
@@ -337,6 +338,7 @@ public class Main extends Application {
     root.getChildren().addAll(send);//add button to scene
 	}
 
+	//Author: Erik Barns
 	//undo move and redraw board to previous board.
 	public void undoMove(){
 		if(!undo && !board.gameOver && !user_turn && client_socket != null){
@@ -348,7 +350,7 @@ public class Main extends Application {
 			updateTurnLabel(user_turn);
 		}
 	}
-
+	//Author: Erik Barns
 	//submit a move to server and check if game is over.
 	public void submitMove() throws IOException, ClassNotFoundException{
 		if(submit){
@@ -368,16 +370,7 @@ public class Main extends Application {
 
 	}
 
-	//returns true if boards are equivalent
-	public boolean boardEquals(char[][] b1, char[][] b2){
-		for(int i=0;i<9;i++){
-			for(int j=0; j<9; j++){
-				if(b1[i][j] != b2[i][j]) return false;
-			}
-		}
-		return true;
-	}
-
+	//Author: Erik Barns
 	//sends string from chat input to server
 	public void sendMessage() throws IOException{
 		String message = usrChat.getText();
@@ -404,7 +397,6 @@ public class Main extends Application {
 		}
 		else
 		{
-			chat.appendText("Leaving Game: You Forfeit!");
 			board = new Board();
 			root.getChildren().remove(0, root.getChildren().size());
 			DrawMap();
@@ -413,6 +405,8 @@ public class Main extends Application {
 			input.close();
 			output.close();
 			client_socket.close();
+			input.close();
+			output.close();
 			client_socket = null;
 			user_turn = false;
 			chat.appendText("Leaving Game!\n");
@@ -422,6 +416,7 @@ public class Main extends Application {
 	}
 
 
+	//Author: Erik Barns
 	//connect to server and load a chosen game
 	public void loadGame() throws IOException, ClassNotFoundException{
 		if(client_socket == null){
@@ -429,33 +424,47 @@ public class Main extends Application {
 		}
 	}
 
+	//Author: Erik Barns
 	//save current game board to server.
 	public void SaveGame(String title) throws IOException{
-		if(output != null ){
+		if(!play_ai){
+			chat.appendText("You can only save games with an CPU opponent\n");
+		}
+		else if(!user_turn){
+			chat.appendText("You can only save when it's your turn.\n");
+		}
+		else if(output != null ){
 			board.player1_turn = user_turn;
 			board.saveGame = true;
 			board.setTitle(title);
 			output.writeObject(board);
-			System.out.println("Saving Game");
+			chat.appendText("Saving board: " + board.title +"\n");
 		}
 	}
 
+	//Author: Erik Barns
 	//connect client to server and option argument
 	public void Connect(int option) throws IOException, ClassNotFoundException{
-		int port = 8086;
+		int port = 8080;
 		if(client_socket != null){
-			System.out.println("Game in progress!");
+			chat.appendText("Game in progress!\n");
 			return;
 		}
-		client_socket = new Socket(InetAddress.getLoopbackAddress(),port);
+		try{
+			client_socket = new Socket(InetAddress.getLoopbackAddress(),port);
+		} catch (Exception e){
+			chat.appendText("There is an issue with the host\n");
+			return;
+		}
+		chat.appendText(("Connecting to: " + client_socket.getInetAddress())+"\n");
 		input = new ObjectInputStream(client_socket.getInputStream());
 		int turn = (int)input.readObject();
 		System.out.println(turn);
 		output = new ObjectOutputStream(client_socket.getOutputStream());
 		output.writeInt(option);
 		output.flush();
+		
 		if(option == 1){
-			System.out.println("Difficulty: " + difficulty);
 			output.writeInt(difficulty);
 			output.flush();
 		}
@@ -464,16 +473,21 @@ public class Main extends Application {
 
 			String[] files = (String[]) input.readObject();
 			String answer = writeLoadGames(files);
-			output.writeObject(Integer.valueOf(answer));
-			Object j = input.readObject();
-			System.out.println(j);
-			board = (Board) j;
-			piece = 'O';
-			user_turn = board.player1_turn;
-			System.out.println(user_turn);
-			System.out.println("Loaded Board:");
-			printBoard();
-			drawNewBoard(board.getBoard());
+			int ans = Integer.valueOf(answer);
+			if(ans < files.length){
+				output.writeObject(Integer.valueOf(answer));
+				Object j = input.readObject();
+				board = (Board) j;
+				play_ai = true;
+				piece = 'O';
+				user_turn = board.player1_turn;
+				drawNewBoard(board.getBoard());
+			}
+			else{
+				chat.appendText("Invalid option!\n");
+				closeSockets();
+				client_socket = null;
+			}
 		}
 		else{
 			if(turn % 2 == 0){
@@ -491,6 +505,14 @@ public class Main extends Application {
 		updateTurnLabel(user_turn);
 	}
 
+	private void closeSockets() throws IOException {
+		// TODO Auto-generated method stub
+		input.close();
+		output.close();
+		client_socket.close();
+	}
+
+	//Author: Erik Barns
 	//click handler to place tile on screen and affect the board.
 	public void playGame() throws ClassNotFoundException, IOException{
 		EventHandler<MouseEvent> mouseHandler = new EventHandler<MouseEvent>(){
@@ -500,10 +522,9 @@ public class Main extends Application {
 				// TODO Auto-generated method stub
 				Point2D click = new Point2D(mevent.getX(),mevent.getY());
 				String eventname = mevent.getEventType().getName();
-				System.out.println(user_turn);
+				
 				if(!user_turn){
 					printBoard();
-					//drawNewBoard(board.getBoard());
 					return;
 				}
 				switch(eventname){
@@ -511,9 +532,10 @@ public class Main extends Application {
 						if((click.getX() > (9 * scale)) || (click.getY() > (9*scale)))
 							return;
 						selection = (int)(click.getX()/50);
-						System.out.println(selection);
+						
 						oldBoard = boardCopy(board.getBoard());
 						oldscore = new Integer(board.getScore());
+						
 						if(board.makeMove(board.getBoard(),selection,piece)){
 							submit = true;
 							undo = false;
@@ -553,6 +575,7 @@ public class Main extends Application {
 		return false;
 	}
 
+	//Erik Barns wrote the opponent response function cpuMove
 	//wait for server response and draw new board
 	public void cpuMove() throws ClassNotFoundException, IOException{
 		Object o;
@@ -562,8 +585,6 @@ public class Main extends Application {
 		}
 		oldBoard = boardCopy(board.getBoard());
 		board = (Board) o;
-		printBoard();
-		System.out.println("end of turn score: "+board.getScore());
 		drawNewBoard(board.getBoard());
 		if(!gameOver()){
 			user_turn = true;
@@ -571,6 +592,7 @@ public class Main extends Application {
 		}
 	}
 
+	//DEBUGGING PURPOSES 
 	//prints current board
 	public void printBoard(){
 		for(int i=0;i<9;i++){
@@ -581,6 +603,7 @@ public class Main extends Application {
 		System.out.println("");
 	}
 
+	//Author: Erik Barns
 	//draw new board on screen
 	public void drawNewBoard(char[][] b){
 		for(int i=8;i>=0;i--){
@@ -595,6 +618,7 @@ public class Main extends Application {
 		}
 	}
 
+	//Author: Erik Barns
 	//draw a move on the screen
 	public void drawMove(int i,int j,boolean player){
 		Rectangle move = new Rectangle((j)*scale,(i)*scale,scale,scale);
@@ -604,7 +628,8 @@ public class Main extends Application {
 			move.setFill(Color.BLUE);
 		root.getChildren().add(move);
 	}
-
+	
+	//Author: Erik Barns
 	//draw white block
 	public void drawWhite(int i,int j){
 		Rectangle move = new Rectangle((j)*scale,(i)*scale,scale,scale);
@@ -612,7 +637,8 @@ public class Main extends Application {
 		move.setStroke(Color.BLACK);
 		root.getChildren().add(move);
 	}
-
+	
+	//Author: Erik Barns
 	//inform user on load game options.
 	public String writeLoadGames(String[] files){
 		chat.appendText("Choose a game to load by index:\n");
@@ -658,7 +684,8 @@ public class Main extends Application {
 		root.getChildren().add(usrChat);
 
 	}
-
+	
+	//Author: Erik Barns
 	//draw player move
 	public void DrawMove(int player, Point p){
 		Circle move  = new Circle();
@@ -672,7 +699,8 @@ public class Main extends Application {
 
 
 	}
-
+	
+	//Author: Erik Barns
 	//draw turn and score labels
 	public void drawTurnLabel(){
 		label_turn = new Label("Turn: ");
@@ -686,6 +714,7 @@ public class Main extends Application {
 		root.getChildren().add(label_score);
 	}
 
+	//Author: Erik Barns
 	//updates the score and turn labels
 	public void updateTurnLabel(boolean turn){
 		System.out.println(turn);
@@ -698,7 +727,8 @@ public class Main extends Application {
 		label_score.setText("Score: "+board.getScore());
 		gameName.setText(board.title);
 	}
-
+	
+	//Author: Erik Barns
 	//create a copy of the current board
 	public char[][] boardCopy(char[][] currboard){
 		char[][] temp = new char[9][9];

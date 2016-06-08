@@ -12,6 +12,7 @@ import java.io.ObjectOutputStream;
 import java.net.SocketException;
 import java.util.ArrayList;
 
+//Author: Erik Barns
 public class Game implements Runnable {
 	Player player1;
 	Player player2;
@@ -25,22 +26,17 @@ public class Game implements Runnable {
 		player2 = p2;
 		board = b;
 		ai = playai;
-		System.out.println("game");
-		System.out.println(ai);
-		//scoreboard = sb;
 	}
 	
 	public Game(Player p1,Board b,boolean playai, Scoreboard sb){
 		player1 = p1;
 		board = b;
 		ai = playai;
-		//scoreboard = sb;
 	}
 
 	//if plyer is playing AI initiate game loop and MinMax algorithm 
 	public void playAI() throws IOException, ClassNotFoundException, SocketException{
 		System.out.println(board.gameOver());
-		
 		while(!board.gameOver()){
 			try{
 				System.out.println("waiting for board");
@@ -57,6 +53,7 @@ public class Game implements Runnable {
 					board = (Board) o;
 				if(board.saveGame){
 					System.out.println("Writing board");
+					board.ai_lvl = cpu.getMaxDepth();
 					writeBoard(board);
 					board.saveGame = false;
 					

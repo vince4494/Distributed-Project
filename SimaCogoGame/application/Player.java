@@ -1,12 +1,16 @@
 package application;
 
+import java.io.EOFException;
 import java.io.IOException;
+
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
+
+//Author: Erik Barns
 public class Player {
 	int port;
 
@@ -39,8 +43,12 @@ public class Player {
 	
 	//send board out socket
 	public void sendBoard(Board b) throws IOException{
-		output.writeObject(b);
-		output.flush();
+		try{
+			output.writeObject(b);
+			output.flush();
+		} catch (Exception e){
+			System.out.println(e.getMessage());
+		}
 	}
 	
 	//wait for board and handle if socket connection error. 
@@ -84,7 +92,11 @@ public class Player {
 	
 	//wait for selection 
 	public int waitForOption() throws ClassNotFoundException, IOException{
-		return (int) reader.readObject();
+		try{
+			return (int) reader.readObject();
+		} catch(EOFException e){
+			return -1;
+		}
 	}
 	
 }

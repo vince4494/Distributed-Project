@@ -4,15 +4,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 //Vince Zipparro: wrote scoreboard class
+@SuppressWarnings("serial")
 public class Scoreboard implements Serializable{
 
 	/**
-	 *
+	 * 
 	 */
-
-	//stores game scores into serializable scoreboard object
-	private static final long serialVersionUID = 6662959459727787407L;
-
 	//scores are stored in arraylist
 	ArrayList<Board> highscores = new ArrayList<Board>();
 	public Scoreboard(){

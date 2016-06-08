@@ -1,7 +1,8 @@
 package application;
 import java.awt.Point;
 import java.util.ArrayList;
-
+//Author: Erik Barns
+// WRITTEN PREVIOUSLY 
 public class minMax {
 	private int maxDepth;
 	private Board response;
@@ -84,7 +85,9 @@ public class minMax {
 		}
 		return null;
 	}
-	
+	public int getMaxDepth(){
+		return maxDepth;
+	}
 	//sets max depth of min max search
 	public void setMaxDepth(int d){
 		maxDepth = d;

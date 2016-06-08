@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.InvalidClassException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -32,10 +33,13 @@ public class Server {
 		server_socket = new ServerSocket(port);
 	}
 	
+	//Author: Erik Barns
 	//listens to socket connection and processes options to connect to
 	// another player or initiate a game with the AI. 
 	// Once game has been determined creates thread and restarts loop.
 	public void listen() throws IOException, ClassNotFoundException{
+		System.out.println("===Simacogo Host===");
+		System.out.println("Listening on port: "+ port);
 		int i=0;
 		while (true){
 			client_socket = server_socket.accept();
@@ -51,22 +55,29 @@ public class Server {
 				files = temp.list();
 				p.sendGames(files);
 				int option = p.waitForOption();
-				System.out.println("Choosing: " + files[option]);
-		      InputStream file = new FileInputStream("SavedGames/"+files[option]);
-		      InputStream buffer = new BufferedInputStream(file);
-		      ObjectInput fileinput = new ObjectInputStream (buffer);
-		      board = (Board)fileinput.readObject();
-		      board.saveGame = false;
-		      Game g = new Game(p,board,true,scoreb);
-		      p.sendBoard(board);
-		      Thread thread = new Thread(g);
-		      thread.start();
-		      fileinput.close();
+				if(option > 0 && option < files.length){
+					System.out.println("Choosing: " + files[option]);
+			      InputStream file = new FileInputStream("SavedGames/"+files[option]);
+			      InputStream buffer = new BufferedInputStream(file);
+			      ObjectInput fileinput = new ObjectInputStream (buffer);
+			      board = (Board)fileinput.readObject();
+			      board.saveGame = false;
+			      Game g = new Game(p,board,true,scoreb);
+			      g.cpu.setMaxDepth(board.ai_lvl);
+			      p.sendBoard(board);
+			      Thread thread = new Thread(g);
+			      thread.start();
+			      fileinput.close();
+				}
+				else{
+					client_socket.close();
+				}
 			}
 			else if(p.playingAI()){
 				int difficulty = p.reader.readInt();
 				System.out.println("Difficulty: "+difficulty);
 				board = new Board();
+				board.ai_lvl = difficulty;
 				board.chat = false;
 				Game g = new Game(p,board,true,scoreb);
 				g.cpu.setMaxDepth(difficulty);
@@ -110,6 +121,8 @@ public class Server {
 			System.out.println(b.title +": " + b.getScore());
 		}
 	}
+	
+	//Author: Erik Barns, Vince Zipparo
 	//create server and listen for connections.
 	public static void main(String[] args) throws IOException, ClassNotFoundException{
 		if(args.length != 1){
@@ -127,8 +140,15 @@ public class Server {
 		      InputStream buffer = new BufferedInputStream(file);
 		      ObjectInput fileinput = new ObjectInputStream (buffer);
 		      b.scoreb = (Scoreboard) fileinput.readObject();
-		      b.printHighScores();
 			}catch (FileNotFoundException e){
+				System.out.println(e.getMessage());
+				System.out.println("Creating new scoreboard");
+				b.scoreb = new Scoreboard();
+				FileOutputStream fout = new FileOutputStream("Scoreboard.ser");
+				ObjectOutputStream oos = new ObjectOutputStream(fout);
+				oos.writeObject(b.scoreb);
+				oos.close();
+			} catch (InvalidClassException e){
 				System.out.println(e.getMessage());
 				System.out.println("Creating new scoreboard");
 				b.scoreb = new Scoreboard();

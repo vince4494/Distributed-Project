@@ -1,7 +1,8 @@
 package application;
 import java.awt.Point;
 import java.io.Serializable;
-
+//Author: Erik Barns
+//CODE IS DEVELOPED FROM PREVIOUS CODE
 public class Board implements Serializable {
 	private char[][] board;
 	private int score;
@@ -10,6 +11,7 @@ public class Board implements Serializable {
 	private int depth;
 	boolean player1_turn;
 	boolean player2_turn;
+	int ai_lvl = 3;
 	boolean gameOver = false;
 	boolean saveGame = false;
 	String title = "Gameboy";
