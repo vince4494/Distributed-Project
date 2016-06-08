@@ -328,7 +328,7 @@ public class Main extends Application {
 	
 	//undo move and redraw board to previous board.
 	public void undoMove(){
-		if(!undo && !board.gameOver){
+		if(!undo && !board.gameOver && client_socket != null){
 			board.setBoard(oldBoard);
 			board.setScore(oldscore);
 			drawNewBoard(oldBoard);
@@ -433,6 +433,7 @@ public class Main extends Application {
 		}
 		chat.appendText("Leaving Game: You Forfeit!");
 		board = new Board();
+		oldBoard = board.getBoard();
 		root.getChildren().remove(0, root.getChildren().size());
 		DrawMap();
 		drawTurnLabel();
