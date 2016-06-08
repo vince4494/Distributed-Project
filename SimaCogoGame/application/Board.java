@@ -12,7 +12,7 @@ public class Board implements Serializable {
 	boolean player2_turn;
 	boolean gameOver = false;
 	boolean saveGame = false;
-	String title;
+	String title = "Gameboy";
 	boolean chat = true;
 	public Board(){
 		board = createBoard();

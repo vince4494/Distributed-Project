@@ -4,6 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,6 +26,7 @@ public class Server {
 	Board board = new Board();
 	minMax cpu = new minMax(5);
 	ArrayList<Player> Players = new ArrayList<Player>();
+	Scoreboard scoreb;
 	public Server(int p) throws IOException{
 		port = p;
 		server_socket = new ServerSocket(port);
@@ -52,7 +55,7 @@ public class Server {
 		      ObjectInput fileinput = new ObjectInputStream (buffer);
 		      board = (Board)fileinput.readObject();
 		      board.saveGame = false;
-		      Game g = new Game(p,board,true);
+		      Game g = new Game(p,board,true,scoreb);
 		      p.sendBoard(board);
 		      Thread thread = new Thread(g);
 		      thread.start();
@@ -63,7 +66,7 @@ public class Server {
 				System.out.println("Difficulty: "+difficulty);
 				board = new Board();
 				board.chat = false;
-				Game g = new Game(p,board,true);
+				Game g = new Game(p,board,true,scoreb);
 				g.cpu.setMaxDepth(difficulty);
 				Thread thread = new Thread(g);
 				thread.start();
@@ -76,7 +79,7 @@ public class Server {
 				Players.add(p2);
 				System.out.println("client connected");
 				//Chat game_chat = new Chat(p,p2);
-				Game g = new Game(p,p2,new Board(),false);
+				Game g = new Game(p,p2,new Board(),false,scoreb);
 				Thread thread = new Thread(g);
 				thread.start();
 //				Thread chatthread = new Thread(game_chat);
@@ -98,6 +101,11 @@ public class Server {
 		System.out.println("");
 	}
 	
+	public void printHighScores(){
+		for(Board b : scoreb.highscores){
+			System.out.println(b.title +": " + b.getScore());
+		}
+	}
 	//create server and listen for connections.
 	public static void main(String[] args) throws IOException, ClassNotFoundException{
 		if(args.length != 1){
@@ -107,7 +115,23 @@ public class Server {
 			int port = Integer.valueOf(args[0]);
 			System.out.println("Listening on port: "+ port);
 			Server b = new Server(port);
+			try{
+		      InputStream file = new FileInputStream("Scoreboard.ser");
+		      InputStream buffer = new BufferedInputStream(file);
+		      ObjectInput fileinput = new ObjectInputStream (buffer);
+		      b.scoreb = (Scoreboard) fileinput.readObject();
+		      b.printHighScores();
+			}catch (FileNotFoundException e){
+				System.out.println(e.getMessage());
+				System.out.println("Creating new scoreboard");
+				b.scoreb = new Scoreboard();
+				FileOutputStream fout = new FileOutputStream("Scoreboard.ser");
+				ObjectOutputStream oos = new ObjectOutputStream(fout);
+				oos.writeObject(b.scoreb);
+				oos.close();
+			}
 			b.listen();
+			
 		}
 	}
 }

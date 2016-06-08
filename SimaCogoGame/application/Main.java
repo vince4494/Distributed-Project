@@ -61,6 +61,7 @@ public class Main extends Application {
 	char piece;
 	int difficulty;
 	boolean player;
+	boolean undo = true;
 	TextArea chat;
 	boolean submit = false;
 	boolean play_ai = false;
@@ -162,6 +163,7 @@ public class Main extends Application {
        gameName.setLayoutX(80);
        gameName.setLayoutY(550);
        root.getChildren().addAll(label1,gameName);
+       
 		Button save = new Button("Save Game");//offer button to reset
         save.setLayoutY(520);
         save.setLayoutX(10);
@@ -279,7 +281,12 @@ public class Main extends Application {
 		@Override
 		public void handle(ActionEvent event)
 		{
-			//chat.appendText(highScores.toString() + "\n");
+			try {
+				Connect(4);
+			} catch (ClassNotFoundException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 		}
 
@@ -313,16 +320,20 @@ public class Main extends Application {
 	
 	//undo move and redraw board to previous board.
 	public void undoMove(){
-		board.setBoard(oldBoard);
-		board.setScore(oldscore);
-		drawNewBoard(oldBoard);
-		user_turn = true;
-		updateTurnLabel(user_turn);
+		if(!undo && !board.gameOver){
+			board.setBoard(oldBoard);
+			board.setScore(oldscore);
+			drawNewBoard(oldBoard);
+			user_turn = true;
+			undo = true;
+			updateTurnLabel(user_turn);
+		}
 	}
 	
 	//submit a move to server and check if game is over.
 	public void submitMove() throws IOException, ClassNotFoundException{
 		if(submit){
+			board.setTitle(gameName.getText());
 			output.writeObject(board);
 			output.flush();
 			user_turn = false;
@@ -516,6 +527,7 @@ public class Main extends Application {
 						oldscore = new Integer(board.getScore());
 						if(board.makeMove(board.getBoard(),selection,piece)){
 							submit = true;
+							undo = false;
 							user_turn = false;
 							drawNewBoard(board.getBoard());
 							updateTurnLabel(user_turn);						
@@ -530,17 +542,22 @@ public class Main extends Application {
 	}
 	
 	//if game is over, return winner and loser 
-	public boolean gameOver(){
+	public boolean gameOver() throws ClassNotFoundException, IOException{
 		if(board.gameOver()){
 			user_turn = false;
 			if(piece == 'O' && board.getScore() < 0)
-				chat.appendText("YOU WON!");
+				chat.appendText("YOU WON!\n");
 			else if(piece == 'X' && board.getScore() > 0)
-				chat.appendText("YOU WON!");
+				chat.appendText("YOU WON!\n");
 			else if (board.getScore() == 0)
-				chat.appendText("TIE!");
+				chat.appendText("TIE!\n");
 			else
-				chat.appendText("YOU LOST!");
+				chat.appendText("YOU LOST!\n");
+			Object line;
+			chat.appendText("Highscores: \n");
+			while((line = input.readObject()) != null && line.getClass() != board.getClass())
+				chat.appendText((String)line);
+			chat.appendText("Game Over");
 			return true;
 		}
 		return false;
@@ -688,6 +705,7 @@ public class Main extends Application {
 			label_turn.setText("Turn: Opponents \n         Turn");
 		
 		label_score.setText("Score: "+board.getScore());
+		gameName.setText(board.title);
 	}
 	
 	//create a copy of the current board 

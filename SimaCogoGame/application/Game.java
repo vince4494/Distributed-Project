@@ -1,9 +1,16 @@
 package application;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
+import java.util.ArrayList;
 
 public class Game implements Runnable {
 	Player player1;
@@ -11,20 +18,23 @@ public class Game implements Runnable {
 	Board board;
 	minMax cpu = new minMax(5);
 	boolean ai;
+	Scoreboard scoreboard;
 	
-	public Game(Player p1, Player p2,Board b,boolean playai){
+	public Game(Player p1, Player p2,Board b,boolean playai,Scoreboard sb){
 		player1 = p1;
 		player2 = p2;
 		board = b;
 		ai = playai;
 		System.out.println("game");
 		System.out.println(ai);
+		//scoreboard = sb;
 	}
 	
-	public Game(Player p1,Board b,boolean playai){
+	public Game(Player p1,Board b,boolean playai, Scoreboard sb){
 		player1 = p1;
 		board = b;
 		ai = playai;
+		//scoreboard = sb;
 	}
 
 	//if plyer is playing AI initiate game loop and MinMax algorithm 
@@ -37,7 +47,7 @@ public class Game implements Runnable {
 				Object o = player1.waitBoard();
 				if(o == null){
 					board.gameOver = true;
-					//closeSockets();
+					processScore(board);
 					return;
 				}
 				else
@@ -62,6 +72,7 @@ public class Game implements Runnable {
 				board.gameOver = true;
 			}
 		}
+		processScore(board);
 	}
 	
 	//if player is playing another player initiate game loop that waits for board and passes between the two.
@@ -77,6 +88,8 @@ public class Game implements Runnable {
 				System.out.println("hey");
 				player2.writeObject("The Player has left the game!");
 				player2.sendBoard(board);
+				player1 = null;
+				processScore(board);
 				return;
 			}
 			board = (Board) o;
@@ -90,6 +103,8 @@ public class Game implements Runnable {
 				System.out.println("hey");
 				player1.writeObject("The Player has left the game!");
 				player1.sendBoard(board);
+				player2 = null;
+				processScore(board);
 				return;
 			}
 			board = (Board) o;
@@ -102,9 +117,39 @@ public class Game implements Runnable {
 			System.out.println("end of turn score: "+board.getScore());
 			printBoard();
 		}
-		
+		processScore(board);
 	}
 	
+	//process score and store high scores
+	public void processScore(Board b) throws IOException, ClassNotFoundException{
+		System.out.println("Processing score with scoreboard");
+		InputStream file = new FileInputStream("Scoreboard.ser");
+		InputStream buffer = new BufferedInputStream(file);
+		ObjectInput fileinput = new ObjectInputStream (buffer);
+		scoreboard = (Scoreboard) fileinput.readObject();
+		int i = 0;
+		for(Board record : scoreboard.highscores){
+			if(Math.abs(record.getScore()) < Math.abs(b.getScore())){
+				scoreboard.highscores.add(i,b);
+				FileOutputStream fout = new FileOutputStream("Scoreboard.ser");
+				ObjectOutputStream oos = new ObjectOutputStream(fout);
+				oos.writeObject(scoreboard);
+				oos.close();
+				break;
+			}
+			i++;	
+		}
+		System.out.println("Sending scoreboard to players");
+		for(int j=1;j<=5;j++){
+			Board score = scoreboard.highscores.get(j-1);
+			String line = "["+j+"] "+score.title+": " + Math.abs(score.getScore()) + "\n";
+			System.out.println(line);
+			if (player1 != null)player1.writeObject(line);
+			if (player2 != null) player2.writeObject(line);
+		}
+		if (player1 != null)player1.writeObject(board);
+		if(player2 != null) player2.writeObject(board);
+	}
 	//close player sockets
 	public void closeSockets() throws IOException{
 		player1.reader.close();
