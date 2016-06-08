@@ -47,8 +47,11 @@ public class Game implements Runnable {
 				Object o = player1.waitBoard();
 				if(o == null){
 					board.gameOver = true;
-					processScore(board);
 					return;
+				}
+				else if(o instanceof Integer){
+					sendScoreBoard(board,player1);
+					continue;
 				}
 				else
 					board = (Board) o;
@@ -72,7 +75,7 @@ public class Game implements Runnable {
 				board.gameOver = true;
 			}
 		}
-		processScore(board);
+		processScore(board,true);
 	}
 	
 	//if player is playing another player initiate game loop that waits for board and passes between the two.
@@ -80,6 +83,9 @@ public class Game implements Runnable {
 		while(!board.gameOver()){
 			Object o;
 			while((o = player1.waitBoard()) != null && o.getClass() != board.getClass()){
+				if(o instanceof Integer){
+					sendScoreBoard(board,player1);
+				}
 				player2.writeObject(o);
 			}
 			System.out.println(o);
@@ -89,13 +95,16 @@ public class Game implements Runnable {
 				player2.writeObject("The Player has left the game!");
 				player2.sendBoard(board);
 				player1 = null;
-				processScore(board);
+				processScore(board,true);
 				return;
 			}
 			board = (Board) o;
 			printBoard();
 			player2.sendBoard(board);
 			while((o = player2.waitBoard()) != null && o.getClass() != board.getClass()){
+				if(o instanceof Integer){
+					sendScoreBoard(board,player2);
+				}
 				player1.writeObject(o);
 			}
 			if(o == null){
@@ -104,7 +113,7 @@ public class Game implements Runnable {
 				player1.writeObject("The Player has left the game!");
 				player1.sendBoard(board);
 				player2 = null;
-				processScore(board);
+				processScore(board,true);
 				return;
 			}
 			board = (Board) o;
@@ -117,27 +126,29 @@ public class Game implements Runnable {
 			System.out.println("end of turn score: "+board.getScore());
 			printBoard();
 		}
-		processScore(board);
+		processScore(board,true);
 	}
 	
 	//process score and store high scores
-	public void processScore(Board b) throws IOException, ClassNotFoundException{
+	public void processScore(Board b,boolean status) throws IOException, ClassNotFoundException{
 		System.out.println("Processing score with scoreboard");
 		InputStream file = new FileInputStream("Scoreboard.ser");
 		InputStream buffer = new BufferedInputStream(file);
 		ObjectInput fileinput = new ObjectInputStream (buffer);
 		scoreboard = (Scoreboard) fileinput.readObject();
 		int i = 0;
-		for(Board record : scoreboard.highscores){
-			if(Math.abs(record.getScore()) < Math.abs(b.getScore())){
-				scoreboard.highscores.add(i,b);
-				FileOutputStream fout = new FileOutputStream("Scoreboard.ser");
-				ObjectOutputStream oos = new ObjectOutputStream(fout);
-				oos.writeObject(scoreboard);
-				oos.close();
-				break;
+		if(status){
+			for(Board record : scoreboard.highscores){
+				if(Math.abs(record.getScore()) < Math.abs(b.getScore())){
+					scoreboard.highscores.add(i,b);
+					FileOutputStream fout = new FileOutputStream("Scoreboard.ser");
+					ObjectOutputStream oos = new ObjectOutputStream(fout);
+					oos.writeObject(scoreboard);
+					oos.close();
+					break;
+				}
+				i++;
 			}
-			i++;	
 		}
 		System.out.println("Sending scoreboard to players");
 		for(int j=1;j<=5;j++){
@@ -149,6 +160,23 @@ public class Game implements Runnable {
 		}
 		if (player1 != null)player1.writeObject(board);
 		if(player2 != null) player2.writeObject(board);
+	}
+	
+	public void sendScoreBoard(Board b,Player plyr) throws IOException, ClassNotFoundException{
+		System.out.println("Processing score with scoreboard");
+		InputStream file = new FileInputStream("Scoreboard.ser");
+		InputStream buffer = new BufferedInputStream(file);
+		ObjectInput fileinput = new ObjectInputStream (buffer);
+		scoreboard = (Scoreboard) fileinput.readObject();
+		int i = 0;
+		System.out.println("Sending scoreboard to players");
+		for(int j=1;j<=5;j++){
+			Board score = scoreboard.highscores.get(j-1);
+			String line = "["+j+"] "+score.title+": " + Math.abs(score.getScore()) + "\n";
+			System.out.println(line);
+			plyr.writeObject(line);
+		}
+		plyr.writeObject(board);
 	}
 	//close player sockets
 	public void closeSockets() throws IOException{

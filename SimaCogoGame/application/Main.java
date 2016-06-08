@@ -282,10 +282,18 @@ public class Main extends Application {
 		public void handle(ActionEvent event)
 		{
 			try {
-				Connect(4);
-			} catch (ClassNotFoundException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				if(client_socket != null){
+					output.writeObject(1);
+					Object line;
+					chat.appendText("Highscores: \n");
+					while((line = input.readObject()) != null && line.getClass() != board.getClass())
+						chat.appendText((String)line);
+				}
+				else{
+					chat.appendText("Connect to a game before requesting the High scores \n");
+				}
+			} catch(Exception e){
+				System.out.println(e.getMessage());
 			}
 
 		}
@@ -420,6 +428,9 @@ public class Main extends Application {
 	
 	//disconnect from server and redraw window
 	public void endGame() throws IOException{
+		if (client_socket == null){ // if game is over
+			return;
+		}
 		chat.appendText("Leaving Game: You Forfeit!");
 		board = new Board();
 		root.getChildren().remove(0, root.getChildren().size());
